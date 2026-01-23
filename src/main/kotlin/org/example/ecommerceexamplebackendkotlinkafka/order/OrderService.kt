@@ -1,7 +1,7 @@
 package org.example.ecommerceexamplebackendkotlinkafka.order
 
-import org.springframework.stereotype.Service
 import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Service
 
 @Service
 class OrderService(
@@ -13,7 +13,7 @@ class OrderService(
     }
 
     fun createOrder(order: OrderRequest): OrderFromStore {
-        val savedOrder =  orderFromStoreRepository.save(OrderFromStore().apply {
+        val savedOrder = orderFromStoreRepository.save(OrderFromStore().apply {
             customerEmail = order.customerEmail
             cartItems = order.cartItems.map { item ->
                 CartItem().apply {

@@ -1,14 +1,6 @@
 package org.example.ecommerceexamplebackendkotlinkafka.order
 
-import jakarta.persistence.CascadeType
-import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
-import jakarta.persistence.JoinColumn
-import jakarta.persistence.ManyToOne
-import jakarta.persistence.OneToMany
-import jakarta.persistence.Table
+import jakarta.persistence.*
 
 enum class OrderStatus {
     PENDING, PAID, SHIPPED, DELIVERED
@@ -21,6 +13,7 @@ class OrderFromStore {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var orderId: Long = 0
     var customerEmail: String = ""
+
     @OneToMany(cascade = [CascadeType.ALL])
     @JoinColumn(name = "order_id")
     var cartItems: MutableList<CartItem> = emptyList<CartItem>().toMutableList()
@@ -33,6 +26,7 @@ class CartItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null
     var quantity: Int = 0
+
     @ManyToOne
     var product: Product? = null
 }
