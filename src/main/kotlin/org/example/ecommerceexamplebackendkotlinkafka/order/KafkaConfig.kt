@@ -1,5 +1,9 @@
 package org.example.ecommerceexamplebackendkotlinkafka.order
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.serialization.StringSerializer
 import org.springframework.beans.factory.annotation.Value
@@ -20,11 +24,18 @@ class KafkaConfig {
         val configProps = mapOf(
             ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to bootstrapServers,
             ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
-            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to JsonSerializer::class.java,
             ProducerConfig.ACKS_CONFIG to "all",
             ProducerConfig.RETRIES_CONFIG to 3
         )
-        return DefaultKafkaProducerFactory(configProps)
+        val objectMapper = ObjectMapper().apply {
+            registerModule(JavaTimeModule())
+            registerKotlinModule()
+            disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+        }
+        val factory = DefaultKafkaProducerFactory<String, OrderCreatedEvent>(configProps)
+        @Suppress("DEPRECATION")
+        factory.setValueSerializer(JsonSerializer(objectMapper))
+        return factory
     }
 
     @Bean
