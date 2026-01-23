@@ -8,13 +8,15 @@ import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
+import jakarta.persistence.Table
 
 enum class OrderStatus {
     PENDING, PAID, SHIPPED, DELIVERED
 }
 
 @Entity
-class Order {
+@Table(name = "orders")
+class OrderFromStore {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var orderId: Long = 0

@@ -4,10 +4,10 @@ import org.springframework.stereotype.Service
 
 @Service
 class OrderService(
-    private val orderRepository: OrderRepository,
+    private val orderFromStoreRepository: OrderFromStoreRepository,
     private val productRepository: ProductRepository
 ) {
-    fun createOrder(order: OrderRequest): Order = orderRepository.save(Order().apply {
+    fun createOrder(order: OrderRequest): OrderFromStore = orderFromStoreRepository.save(OrderFromStore().apply {
         customerEmail = order.customerEmail
         cartItems = order.cartItems.map { item ->
             CartItem().apply {

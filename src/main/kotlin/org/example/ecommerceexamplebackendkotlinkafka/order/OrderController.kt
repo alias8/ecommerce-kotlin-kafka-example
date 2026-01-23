@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*
 class OrderController(private val orderService: OrderService) {
 
     @PostMapping
-    fun createOrder(@RequestBody order: OrderRequest): ResponseEntity<Order> {
+    fun createOrder(@RequestBody order: OrderRequest): ResponseEntity<OrderFromStore> {
         val createOrder = orderService.createOrder(order)
         return ResponseEntity.status(HttpStatus.CREATED).body(createOrder)
     }
