@@ -9,7 +9,7 @@ Services (can all be small)
 5. Analytics Service
 
 Flow:
-1. User places order, this order is then written to database
+1. User places order and order with the REST endpoint `POST /order`, this order is then written to database
 2. Emits Kafka event to Order Service
 3. Multiple services consume the same event, no service calls another directly.
    order_created →
@@ -22,7 +22,7 @@ Flow:
 - inventory_reserved
 - order_failed
 - email_sent
-  Kafka becomes the system’s backbone.
+- Kafka becomes the system’s backbone.
 
 # App structure:
 
