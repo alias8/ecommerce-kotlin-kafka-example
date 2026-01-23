@@ -7,21 +7,16 @@ class OrderService(
     private val orderRepository: OrderRepository,
     private val productRepository: ProductRepository
 ) {
-    fun createOrder(order: OrderRequest): Order {
-        val newOrder = Order()
-        newOrder.customerEmail = order.customerEmail
-        val cartItems = order.cartItems.map { item ->
-            val newCartItem = CartItem()
-            newCartItem.quantity = item.quantity
+    fun createOrder(order: OrderRequest): Order = orderRepository.save(Order().apply {
+        customerEmail = order.customerEmail
+        cartItems = order.cartItems.map { item ->
+            CartItem().apply {
+                quantity = item.quantity
+                product =
+                    productRepository.findBySkuId(item.skuId)
+                        ?: throw ProductNotFoundException("Product not found: ${item.skuId}")
 
-            val product =
-                productRepository.findBySkuId(item.skuId) ?: throw ProductNotFoundException("Product not found: ${item.skuId}")
-            newCartItem.product = product
-
-            return@map newCartItem
-        }
-
-        newOrder.cartItems = cartItems
-        return orderRepository.save(newOrder)
-    }
+            }
+        }.toMutableList()
+    })
 }
