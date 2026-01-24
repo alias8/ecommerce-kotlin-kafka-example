@@ -2,8 +2,8 @@ package org.example.ecommerceexamplebackendkotlinkafka.order
 
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.http.MediaType
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.test.context.bean.override.mockito.MockitoBean
@@ -28,11 +28,13 @@ class OrderControllerValidationTest {
         }.andExpect {
             status { isBadRequest() }
             jsonPath("$.errors[*].field") {
-                value(org.hamcrest.Matchers.containsInAnyOrder(
-                    "customerEmail",
-                    "paymentToken",
-                    "cartItems"
-                ))
+                value(
+                    org.hamcrest.Matchers.containsInAnyOrder(
+                        "customerEmail",
+                        "paymentToken",
+                        "cartItems"
+                    )
+                )
             }
         }
     }
@@ -41,7 +43,8 @@ class OrderControllerValidationTest {
     fun `returns error when customerEmail is invalid format`() {
         mockMvc.post("/orders") {
             contentType = MediaType.APPLICATION_JSON
-            content = """{"customerEmail": "not-an-email", "paymentToken": "tok123", "cartItems": [{"skuId": "SKU1", "quantity": 1}]}"""
+            content =
+                """{"customerEmail": "not-an-email", "paymentToken": "tok123", "cartItems": [{"skuId": "SKU1", "quantity": 1}]}"""
         }.andExpect {
             status { isBadRequest() }
             jsonPath("$.errors[0].field") { value("customerEmail") }
@@ -53,14 +56,17 @@ class OrderControllerValidationTest {
     fun `returns error when cartItems has invalid items`() {
         mockMvc.post("/orders") {
             contentType = MediaType.APPLICATION_JSON
-            content = """{"customerEmail": "test@example.com", "paymentToken": "tok123", "cartItems": [{"skuId": "", "quantity": 0}]}"""
+            content =
+                """{"customerEmail": "test@example.com", "paymentToken": "tok123", "cartItems": [{"skuId": "", "quantity": 0}]}"""
         }.andExpect {
             status { isBadRequest() }
             jsonPath("$.errors[*].field") {
-                value(org.hamcrest.Matchers.containsInAnyOrder(
-                    "cartItems[0].skuId",
-                    "cartItems[0].quantity"
-                ))
+                value(
+                    org.hamcrest.Matchers.containsInAnyOrder(
+                        "cartItems[0].skuId",
+                        "cartItems[0].quantity"
+                    )
+                )
             }
         }
     }
