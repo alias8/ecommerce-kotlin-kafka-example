@@ -18,6 +18,7 @@ class OrderFromStore {
     @JoinColumn(name = "order_id")
     var cartItems: MutableList<CartItem> = emptyList<CartItem>().toMutableList()
     var status: OrderStatus = OrderStatus.PENDING
+    var paymentToken: String = ""
 }
 
 @Entity
