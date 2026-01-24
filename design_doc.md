@@ -1,7 +1,9 @@
 # Design Doc
+
 An example simple e-commerce backend where services communicate via Kafka events, not direct calls.
 
 Services (can all be small)
+
 1. Order Service (producer)
 2. Payment Service
 3. Inventory Service (consumer)
@@ -9,6 +11,7 @@ Services (can all be small)
 5. Analytics Service
 
 Flow:
+
 1. User places order and order with the REST endpoint `POST /order`, this order is then written to database
 2. Emits Kafka event to Order Service
 3. Multiple services consume the same event, no service calls another directly.
@@ -18,6 +21,7 @@ Flow:
    Email Service
    Analytics Service
 4. Each service emits its own events:
+
 - payment_succeeded
 - inventory_reserved
 - order_failed
@@ -27,6 +31,7 @@ Flow:
 # App structure:
 
 Each service:
+
 * Its own project
 * Its own database
 * Its own Kafka consumer group
@@ -36,13 +41,13 @@ e-commerce-example/
 ├─ docker-compose.yml
 │
 ├─ order_service/
-│   └─ orders/
+│ └─ orders/
 │
 ├─ payment_service/
-│   └─ payments/
+│ └─ payments/
 │
 ├─ inventory_service/
-│   └─ inventory/
+│ └─ inventory/
 │
 ├─ notification_service/
-│   └─ notifications/
+│ └─ notifications/
