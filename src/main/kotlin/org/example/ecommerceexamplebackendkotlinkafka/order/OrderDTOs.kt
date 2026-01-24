@@ -1,14 +1,30 @@
 package org.example.ecommerceexamplebackendkotlinkafka.order
 
+import jakarta.validation.Valid
+import jakarta.validation.constraints.Email
+import jakarta.validation.constraints.Min
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotEmpty
+
 data class OrderRequest(
-    val customerEmail: String,
-    val paymentToken: String,
-    var cartItems: List<CartItemRequest> = emptyList()
+    @field:NotBlank(message = "customerEmail is required")
+    @field:Email(message = "customerEmail must be a valid email address")
+    val customerEmail: String?,
+
+    @field:NotBlank(message = "paymentToken is required")
+    val paymentToken: String?,
+
+    @field:NotEmpty(message = "cartItems cannot be empty")
+    @field:Valid
+    var cartItems: List<CartItemRequest>? = null
 )
 
 data class CartItemRequest(
-    val skuId: String,
-    val quantity: Int
+    @field:NotBlank(message = "skuId is required")
+    val skuId: String?,
+
+    @field:Min(value = 1, message = "quantity must be at least 1")
+    val quantity: Int = 0
 )
 
 data class OrderCreatedEvent(

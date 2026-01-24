@@ -22,13 +22,13 @@ class OrderService(
 
     fun saveToDatabase(order: OrderRequest): OrderFromStore {
         val savedOrder = orderFromStoreRepository.save(OrderFromStore().apply {
-            customerEmail = order.customerEmail
-            paymentToken = order.paymentToken
-            cartItems = order.cartItems.map { item ->
+            customerEmail = order.customerEmail!!
+            paymentToken = order.paymentToken!!
+            cartItems = order.cartItems!!.map { item ->
                 CartItem().apply {
                     quantity = item.quantity
                     product =
-                        productRepository.findBySkuId(item.skuId)
+                        productRepository.findBySkuId(item.skuId!!)
                             ?: throw ProductNotFoundException("Product not found: ${item.skuId}")
 
                 }
