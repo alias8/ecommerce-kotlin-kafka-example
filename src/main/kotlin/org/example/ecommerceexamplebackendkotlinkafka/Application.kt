@@ -1,4 +1,4 @@
-package org.example.ecommerceexamplebackendkotlinkafka.order
+package org.example.ecommerceexamplebackendkotlinkafka
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication

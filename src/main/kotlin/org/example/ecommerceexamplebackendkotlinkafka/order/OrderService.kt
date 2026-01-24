@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service
 class OrderService(
     private val orderFromStoreRepository: OrderFromStoreRepository,
     private val productRepository: ProductRepository,
-    private val kafkaTemplate: KafkaTemplate<String, OrderCreatedEvent>
+    private val kafkaTemplate: KafkaTemplate<String, Any> // Known error, can ignore
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(OrderService::class.java)

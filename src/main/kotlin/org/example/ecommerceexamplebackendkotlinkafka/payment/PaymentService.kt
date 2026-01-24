@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service
 @Service
 class PaymentService(
     private val paymentRepository: PaymentRepository,
-    private val kafkaTemplate: KafkaTemplate<String, PaymentCreatedEvent>
+    private val kafkaTemplate: KafkaTemplate<String, Any> // Known error, can ignore
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(PaymentService::class.java)
@@ -33,14 +33,14 @@ class PaymentService(
             this.success = success
         }
         val savedPayment = paymentRepository.save(newPayment)
-
+        logger.info("Payment for oderId ${savedPayment.orderId} saved")
 
         val paymentCreatedEvent = PaymentCreatedEvent(
             success = success,
             cartItems = event.cartItems,
         )
         kafkaTemplate.send(KafkaTopic.PAYMENTS, if (success) "success" else "fail", paymentCreatedEvent)
-        logger.info("Payment result: $success for order ${event.orderId}")
+        logger.info("Payment result: $success for order ${event.orderId} kafka event sent")
 
 
     }
