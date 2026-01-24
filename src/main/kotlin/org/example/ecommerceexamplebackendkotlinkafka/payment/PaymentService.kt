@@ -11,10 +11,14 @@ import org.springframework.stereotype.Service
 @Service
 class PaymentService(
     private val paymentRepository: PaymentRepository,
-    private val kafkaTemplate: KafkaTemplate<String, Any> // Known error, can ignore
+    private val kafkaTemplate: KafkaTemplate<String, Any>
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(PaymentService::class.java)
+    }
+
+    init {
+        logger.info("PaymentService bean created!")
     }
 
     @KafkaListener(topics = [KafkaTopic.ORDERS], groupId = KafkaGroupId.PAYMENT_SERVICE)
@@ -33,7 +37,7 @@ class PaymentService(
             this.success = success
         }
         val savedPayment = paymentRepository.save(newPayment)
-        logger.info("Payment for oderId ${savedPayment.orderId} saved")
+        logger.info("Payment for orderId ${savedPayment.orderId} saved")
 
         val paymentCreatedEvent = PaymentCreatedEvent(
             success = success,

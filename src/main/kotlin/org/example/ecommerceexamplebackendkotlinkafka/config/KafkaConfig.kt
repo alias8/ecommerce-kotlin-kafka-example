@@ -9,12 +9,19 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.core.ProducerFactory
 
+import org.apache.kafka.clients.consumer.ConsumerConfig
+import org.apache.kafka.common.serialization.StringDeserializer
+import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
+import org.springframework.kafka.core.ConsumerFactory
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory
+
 @Configuration
 class KafkaConfig {
 
     @Value("\${spring.kafka.bootstrap-servers}")
     private lateinit var bootstrapServers: String
 
+    // This is needed for the kafkaTemplate: KafkaTemplate<String, Any> in the Payment and Order services injection
     @Bean
     fun producerFactory(): ProducerFactory<String, Any> {
         val configProps = mapOf(
@@ -23,6 +30,25 @@ class KafkaConfig {
             ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to "org.springframework.kafka.support.serializer.JsonSerializer"
         )
         return DefaultKafkaProducerFactory(configProps)
+    }
+
+    // This is needed for the paymentservice @KafkaListener to start
+    @Bean
+    fun consumerFactory(): ConsumerFactory<String, Any> {
+        val configProps = mapOf(
+            ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG to bootstrapServers,
+            ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
+            ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to "org.springframework.kafka.support.serializer.JsonDeserializer",
+            "spring.json.trusted.packages" to "*"
+        )
+        return DefaultKafkaConsumerFactory(configProps)
+    }
+
+    @Bean
+    fun kafkaListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, Any> {
+        val factory = ConcurrentKafkaListenerContainerFactory<String, Any>()
+        factory.setConsumerFactory(consumerFactory())
+        return factory
     }
 
     @Bean
