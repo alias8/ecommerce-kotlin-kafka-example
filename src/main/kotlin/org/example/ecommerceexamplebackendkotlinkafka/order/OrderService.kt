@@ -39,11 +39,12 @@ class OrderService(
     }
 
     fun sendKafkaEvent(order: OrderFromStore) {
-        val orderCreatedEvent =  OrderCreatedEvent(
-            orderId= order.orderId,
+        val orderCreatedEvent = OrderCreatedEvent(
+            orderId = order.orderId,
             paymentToken = order.paymentToken,
             customerEmail = order.customerEmail,
-            totalPrice = order.cartItems.sumOf { it.product!!.unitPrice * it.quantity }
+            totalPrice = order.cartItems.sumOf { it.product!!.unitPrice * it.quantity },
+            cartItems = order.cartItems.map { CartItemRequest(it.product!!.skuId, it.quantity) }
         )
         kafkaTemplate.send(KafkaTopic.ORDERS, order.orderId.toString(), orderCreatedEvent)
         logger.info("Order id ${order.orderId} sent to kafka")

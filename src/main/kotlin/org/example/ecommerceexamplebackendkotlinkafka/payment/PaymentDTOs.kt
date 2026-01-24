@@ -1,4 +1,8 @@
 package org.example.ecommerceexamplebackendkotlinkafka.payment
 
-class PaymentDTOs {
-}
+import org.example.ecommerceexamplebackendkotlinkafka.order.CartItemRequest
+
+data class PaymentCreatedEvent(
+    val success: Boolean,
+    val cartItems: List<CartItemRequest>
+)
