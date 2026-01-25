@@ -27,6 +27,11 @@ services:
     container_name: mongodb
     ports:
       - "27017:27017"
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   order-service:
     build: .
@@ -35,6 +40,7 @@ services:
       - "8080:8080"
     environment:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_DATA_MONGODB_URI: mongodb://mongodb:27017/productdb
     depends_on:
       kafka:
         condition: service_healthy
