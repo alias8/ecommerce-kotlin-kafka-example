@@ -1,17 +1,14 @@
 package org.example.ecommerceexamplebackendkotlinkafka.product
 
-import org.example.ecommerceexamplebackendkotlinkafka.order.CartItemRequest
+import jakarta.transaction.Transactional
 import org.example.ecommerceexamplebackendkotlinkafka.order.KafkaGroupId
 import org.example.ecommerceexamplebackendkotlinkafka.order.KafkaTopic
-import org.example.ecommerceexamplebackendkotlinkafka.order.OrderCreatedEvent
-import org.example.ecommerceexamplebackendkotlinkafka.order.OrderService
 import org.example.ecommerceexamplebackendkotlinkafka.order.ProductNotFoundException
 import org.example.ecommerceexamplebackendkotlinkafka.payment.PaymentCreatedEvent
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
-import kotlin.String
 
 @Service
 class ProductService(
@@ -26,28 +23,32 @@ class ProductService(
         logger.info("ProductService bean created!")
     }
 
-    @KafkaListener(topics = [KafkaTopic.PAYMENTS], groupId = KafkaGroupId.PRODUCT_SERVICE)
+    @Transactional
+    @KafkaListener(
+        topics = [KafkaTopic.PAYMENTS],
+        groupId = KafkaGroupId.PRODUCT_SERVICE,
+        containerFactory = "filterSuccessMessagesKafkaListenerContainerFactory"
+    )
     fun handlePaymentCreated(event: PaymentCreatedEvent) {
-        if(!event.success) return
-
-        for(item in event.cartItems) {
-            val productToUpdate = productRepository.findBySkuId(item.skuId!!)
-            ?: throw ProductNotFoundException("Product not found: ${item.skuId}")
+        for (item in event.cartItems) {
+            val skuId = item.skuId ?: continue
+            val productToUpdate = productRepository.findBySkuId(skuId)
+                ?: throw ProductNotFoundException("Product not found: $skuId")
             productToUpdate.stockLevel -= item.quantity
             productRepository.save(productToUpdate)
 
             val productUpdatedEvent = ProductUpdatedEvent(
                 orderId = event.orderId,
                 customerEmail = event.customerEmail,
-                stockLevel = item.quantity,
-                skuId = item.skuId
+                stockLevel = productToUpdate.stockLevel,
+                skuId = skuId
             )
             kafkaTemplate.send(KafkaTopic.PRODUCTS, event.orderId.toString(), productUpdatedEvent)
                 .whenComplete { result, ex ->
                     if (ex == null) {
                         logger.info("Success Kafka event sent. Service: Product. Order id ${event.orderId}")
                     } else {
-                        logger.info("Failure Kafka event sent. Service: Product. Order id ${event.orderId}")
+                        logger.error("Failure Kafka event sent. Service: Product. Order id ${event.orderId}", ex)
                     }
                 }
         }

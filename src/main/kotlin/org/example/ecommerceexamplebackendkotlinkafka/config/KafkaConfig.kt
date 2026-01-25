@@ -42,14 +42,28 @@ class KafkaConfig {
     }
 
     @Bean
-    fun kafkaListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, Any> {
+    fun kafkaListenerContainerFactory(
+        consumerFactory: ConsumerFactory<String, Any>
+    ): ConcurrentKafkaListenerContainerFactory<String, Any> {
         val factory = ConcurrentKafkaListenerContainerFactory<String, Any>()
-        factory.setConsumerFactory(consumerFactory())
+        factory.setConsumerFactory(consumerFactory)
         return factory
     }
 
     @Bean
     fun kafkaTemplate(): KafkaTemplate<String, Any> {
         return KafkaTemplate(producerFactory())
+    }
+
+    @Bean
+    fun filterSuccessMessagesKafkaListenerContainerFactory(
+        consumerFactory: ConsumerFactory<String, Any>
+    ): ConcurrentKafkaListenerContainerFactory<String, Any> {
+        val factory = ConcurrentKafkaListenerContainerFactory<String, Any>()
+        factory.setConsumerFactory(consumerFactory)
+        factory.setRecordFilterStrategy { record ->
+            record.key() != "success"  // return true to discard
+        }
+        return factory
     }
 }
