@@ -1,5 +1,6 @@
 package org.example.ecommerceexamplebackendkotlinkafka.order
 
+import jakarta.transaction.Transactional
 import org.example.ecommerceexamplebackendkotlinkafka.product.ProductNotFoundException
 import org.example.ecommerceexamplebackendkotlinkafka.product.ProductRepository
 import org.slf4j.LoggerFactory
@@ -20,6 +21,7 @@ class OrderService(
         logger.info("OrderService bean created!")
     }
 
+    @Transactional
     fun createOrder(order: OrderRequest): OrderFromStore {
         val savedOrder = saveToDatabase(order)
         sendKafkaEvent(savedOrder)

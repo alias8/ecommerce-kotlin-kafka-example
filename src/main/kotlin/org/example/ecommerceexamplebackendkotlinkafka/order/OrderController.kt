@@ -17,6 +17,12 @@ class OrderController(private val orderService: OrderService) {
         return ResponseEntity.status(HttpStatus.CREATED).body(createOrder)
     }
 
+    @PutMapping
+    fun updateOrderStatus(@Valid @RequestBody order: OrderRequest): ResponseEntity<OrderFromStore> {
+        val createOrder = orderService.createOrder(order)
+        return ResponseEntity.status(HttpStatus.CREATED).body(createOrder)
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun handleValidationErrors(e: MethodArgumentNotValidException): ResponseEntity<Map<String, Any>> {
         val errors = e.bindingResult.fieldErrors.map { fieldError ->

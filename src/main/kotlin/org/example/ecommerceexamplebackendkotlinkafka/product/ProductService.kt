@@ -3,7 +3,6 @@ package org.example.ecommerceexamplebackendkotlinkafka.product
 import jakarta.transaction.Transactional
 import org.example.ecommerceexamplebackendkotlinkafka.order.KafkaGroupId
 import org.example.ecommerceexamplebackendkotlinkafka.order.KafkaTopic
-import org.example.ecommerceexamplebackendkotlinkafka.product.ProductNotFoundException
 import org.example.ecommerceexamplebackendkotlinkafka.payment.PaymentCreatedEvent
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
@@ -34,14 +33,16 @@ class ProductService(
             val skuId = item.skuId ?: continue
             val productToUpdate = productRepository.findBySkuId(skuId)
                 ?: throw ProductNotFoundException("Product not found: $skuId")
-            productToUpdate.stockLevel -= item.quantity
+            val sufficientStock = productToUpdate.stockLevel >= item.quantity
+            productToUpdate.stockLevel -= item.quantity // subtract quantity from stock
             productRepository.save(productToUpdate)
 
             val productUpdatedEvent = ProductUpdatedEvent(
                 orderId = event.orderId,
                 customerEmail = event.customerEmail,
-                stockLevel = productToUpdate.stockLevel,
-                skuId = skuId
+                skuId = skuId,
+                quantity = item.quantity,
+                sufficientStock = sufficientStock
             )
             kafkaTemplate.send(KafkaTopic.PRODUCTS, event.orderId.toString(), productUpdatedEvent)
                 .whenComplete { result, ex ->
