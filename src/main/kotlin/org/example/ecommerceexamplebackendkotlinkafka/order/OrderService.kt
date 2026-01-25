@@ -34,7 +34,6 @@ class OrderService(
                 }
             }.toMutableList()
         })
-        logger.info("Order id ${savedOrder.orderId} saved")
         return savedOrder
     }
 
@@ -47,6 +46,13 @@ class OrderService(
             cartItems = order.cartItems.map { CartItemRequest(it.product!!.skuId, it.quantity) }
         )
         kafkaTemplate.send(KafkaTopic.ORDERS, order.orderId.toString(), orderCreatedEvent)
-        logger.info("Order id ${order.orderId} sent to kafka")
+            .whenComplete { result, ex ->
+                if (ex == null) {
+                    logger.info("Success Kafka event sent. Service: Order. Order id ${order.orderId}")
+                } else {
+                    logger.info("Failure Kafka event sent. Service: Order. Order id ${order.orderId}")
+                }
+            }
+
     }
 }

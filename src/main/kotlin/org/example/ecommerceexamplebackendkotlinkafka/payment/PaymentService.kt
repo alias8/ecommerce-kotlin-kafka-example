@@ -36,16 +36,19 @@ class PaymentService(
             paymentToken = event.paymentToken
             this.success = success
         }
-        val savedPayment = paymentRepository.save(newPayment)
-        logger.info("Payment for orderId ${savedPayment.orderId} saved")
+        paymentRepository.save(newPayment)
 
         val paymentCreatedEvent = PaymentCreatedEvent(
             success = success,
             cartItems = event.cartItems,
         )
         kafkaTemplate.send(KafkaTopic.PAYMENTS, if (success) "success" else "fail", paymentCreatedEvent)
-        logger.info("Payment result: $success for order ${event.orderId} kafka event sent")
-
-
+            .whenComplete { result, ex ->
+                if (ex == null) {
+                    logger.info("Success Kafka event sent. Service: Payment. Order id ${event.orderId}")
+                } else {
+                    logger.info("Failure Kafka event sent. Service: Order. Order id ${event.orderId}")
+                }
+            }
     }
 }
