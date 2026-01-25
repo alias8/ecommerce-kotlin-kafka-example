@@ -41,6 +41,8 @@ object KafkaTopic {
     const val ORDERS = "orders"
     const val PAYMENTS = "payments"
     const val PRODUCTS = "products"
+    const val INVENTORY_ALERTS = "inventory-alerts"
+    const val WAREHOUSE_ALERTS = "warehouse-alerts"
 }
 
 object KafkaGroupId {

@@ -1,5 +1,12 @@
 package org.example.ecommerceexamplebackendkotlinkafka.shipping
 
-data class ShippingUpdatedEvent(
+data class LowStockEvent(
     val skuId: String,
+    val quantity: Int
+)
+
+data class WarehouseEvent(
+    val skuId: String,
+    val quantity: Int,
+    val orderId: Long,
 )

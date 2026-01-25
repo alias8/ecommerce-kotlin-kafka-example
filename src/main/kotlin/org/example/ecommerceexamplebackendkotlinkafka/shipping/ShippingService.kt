@@ -33,15 +33,39 @@ class ShippingService(
             // Create a shipping record
             val shippingEvent = Shipping().apply {
                 orderId = event.orderId
-                status = OrderStatus.SHIPPED
+                status = OrderStatus.PENDING
                 skuId = event.skuId
                 quantity = event.quantity
             }
             shippingRepository.save(shippingEvent)
         } else {
-            // Need to order more inventory
+            // Order more inventory
+            val lowStockEvent = LowStockEvent(
+                skuId = event.skuId,
+                quantity = event.quantity,
+            )
+            kafkaTemplate.send(KafkaTopic.INVENTORY_ALERTS, event.skuId, lowStockEvent)
+                .whenComplete { result, ex ->
+                    if (ex == null) {
+                        logger.info("Success Kafka event sent. Service: Shipping. Order id ${event.orderId}")
+                    } else {
+                        logger.error("Failure Kafka event sent. Service: Shipping. Order id ${event.orderId}", ex)
+                    }
+                }
         }
 
-        // Emit Kafka event
+        val warehouseEvent = WarehouseEvent(
+            skuId = event.skuId,
+            quantity = event.quantity,
+            orderId = event.orderId,
+        )
+        kafkaTemplate.send(KafkaTopic.WAREHOUSE_ALERTS, event.skuId, warehouseEvent)
+            .whenComplete { result, ex ->
+                if (ex == null) {
+                    logger.info("Success Kafka event sent. Service: Shipping. Order id ${event.orderId}")
+                } else {
+                    logger.error("Failure Kafka event sent. Service: Shipping. Order id ${event.orderId}", ex)
+                }
+            }
     }
 }
