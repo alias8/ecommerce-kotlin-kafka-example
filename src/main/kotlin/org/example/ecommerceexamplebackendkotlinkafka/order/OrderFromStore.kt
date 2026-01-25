@@ -1,6 +1,7 @@
 package org.example.ecommerceexamplebackendkotlinkafka.order
 
 import jakarta.persistence.*
+import org.example.ecommerceexamplebackendkotlinkafka.product.Product
 
 enum class OrderStatus {
     PENDING, PAID, SHIPPED, DELIVERED
@@ -30,15 +31,6 @@ class CartItem {
 
     @ManyToOne
     var product: Product? = null
-}
-
-@Entity
-class Product {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    var id: Long? = null
-    var skuId: String = ""
-    var unitPrice: Double = 0.0
 }
 
 

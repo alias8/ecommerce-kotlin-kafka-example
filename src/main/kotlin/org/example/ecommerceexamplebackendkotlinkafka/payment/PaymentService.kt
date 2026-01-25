@@ -41,6 +41,8 @@ class PaymentService(
         val paymentCreatedEvent = PaymentCreatedEvent(
             success = success,
             cartItems = event.cartItems,
+            orderId = event.orderId,
+            customerEmail = event.customerEmail
         )
         kafkaTemplate.send(KafkaTopic.PAYMENTS, if (success) "success" else "fail", paymentCreatedEvent)
             .whenComplete { result, ex ->

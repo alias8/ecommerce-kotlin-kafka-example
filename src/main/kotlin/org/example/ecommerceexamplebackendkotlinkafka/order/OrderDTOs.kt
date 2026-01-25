@@ -38,8 +38,10 @@ data class OrderCreatedEvent(
 object KafkaTopic {
     const val ORDERS = "orders"
     const val PAYMENTS = "payments"
+    const val PRODUCTS = "products"
 }
 
 object KafkaGroupId {
     const val PAYMENT_SERVICE = "payment-service"
+    const val PRODUCT_SERVICE = "product-service"
 }

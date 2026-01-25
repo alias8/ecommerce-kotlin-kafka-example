@@ -1,4 +1,4 @@
-package org.example.ecommerceexamplebackendkotlinkafka.order
+package org.example.ecommerceexamplebackendkotlinkafka.product
 
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository

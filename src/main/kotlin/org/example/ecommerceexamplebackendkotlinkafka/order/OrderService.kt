@@ -1,5 +1,6 @@
 package org.example.ecommerceexamplebackendkotlinkafka.order
 
+import org.example.ecommerceexamplebackendkotlinkafka.product.ProductRepository
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
@@ -12,6 +13,10 @@ class OrderService(
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(OrderService::class.java)
+    }
+
+    init {
+        logger.info("OrderService bean created!")
     }
 
     fun createOrder(order: OrderRequest): OrderFromStore {
