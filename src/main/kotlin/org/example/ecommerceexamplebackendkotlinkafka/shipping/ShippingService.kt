@@ -38,6 +38,20 @@ class ShippingService(
                 quantity = event.quantity
             }
             shippingRepository.save(shippingEvent)
+
+            val warehouseEvent = WarehouseEvent(
+                skuId = event.skuId,
+                quantity = event.quantity,
+                orderId = event.orderId,
+            )
+            kafkaTemplate.send(KafkaTopic.WAREHOUSE_ALERTS, event.skuId, warehouseEvent)
+                .whenComplete { result, ex ->
+                    if (ex == null) {
+                        logger.info("Success Kafka event sent. Service: Shipping. Order id ${event.orderId}")
+                    } else {
+                        logger.error("Failure Kafka event sent. Service: Shipping. Order id ${event.orderId}", ex)
+                    }
+                }
         } else {
             // Order more inventory
             val lowStockEvent = LowStockEvent(
@@ -53,19 +67,5 @@ class ShippingService(
                     }
                 }
         }
-
-        val warehouseEvent = WarehouseEvent(
-            skuId = event.skuId,
-            quantity = event.quantity,
-            orderId = event.orderId,
-        )
-        kafkaTemplate.send(KafkaTopic.WAREHOUSE_ALERTS, event.skuId, warehouseEvent)
-            .whenComplete { result, ex ->
-                if (ex == null) {
-                    logger.info("Success Kafka event sent. Service: Shipping. Order id ${event.orderId}")
-                } else {
-                    logger.error("Failure Kafka event sent. Service: Shipping. Order id ${event.orderId}", ex)
-                }
-            }
     }
 }
