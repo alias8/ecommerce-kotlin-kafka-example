@@ -1,5 +1,6 @@
 package org.example.ecommerceexamplebackendkotlinkafka.order
 
+import org.example.ecommerceexamplebackendkotlinkafka.product.ProductNotFoundException
 import org.example.ecommerceexamplebackendkotlinkafka.product.ProductRepository
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.core.KafkaTemplate

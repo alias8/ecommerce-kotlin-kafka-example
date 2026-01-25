@@ -1,4 +1,4 @@
-package org.example.ecommerceexamplebackendkotlinkafka.order
+package org.example.ecommerceexamplebackendkotlinkafka.product
 
 class ProductNotFoundException(
     message: String,

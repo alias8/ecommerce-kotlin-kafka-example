@@ -3,7 +3,7 @@ package org.example.ecommerceexamplebackendkotlinkafka.product
 import jakarta.transaction.Transactional
 import org.example.ecommerceexamplebackendkotlinkafka.order.KafkaGroupId
 import org.example.ecommerceexamplebackendkotlinkafka.order.KafkaTopic
-import org.example.ecommerceexamplebackendkotlinkafka.order.ProductNotFoundException
+import org.example.ecommerceexamplebackendkotlinkafka.product.ProductNotFoundException
 import org.example.ecommerceexamplebackendkotlinkafka.payment.PaymentCreatedEvent
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener

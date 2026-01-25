@@ -1,6 +1,7 @@
 package org.example.ecommerceexamplebackendkotlinkafka.order
 
 import jakarta.validation.Valid
+import org.example.ecommerceexamplebackendkotlinkafka.product.ProductNotFoundException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.MethodArgumentNotValidException

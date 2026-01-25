@@ -16,7 +16,7 @@ data class OrderRequest(
 
     @field:NotEmpty(message = "cartItems cannot be empty")
     @field:Valid
-    var cartItems: List<CartItemRequest>? = null
+    val cartItems: List<CartItemRequest>? = null
 )
 
 data class CartItemRequest(
