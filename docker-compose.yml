@@ -22,6 +22,12 @@ services:
       timeout: 5s
       retries: 5
 
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+
   order-service:
     build: .
     container_name: order-service
@@ -31,4 +37,6 @@ services:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     depends_on:
       kafka:
+        condition: service_healthy
+      mongodb:
         condition: service_healthy

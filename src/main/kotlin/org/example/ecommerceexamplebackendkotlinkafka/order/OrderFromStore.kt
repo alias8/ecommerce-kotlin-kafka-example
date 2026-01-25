@@ -27,9 +27,15 @@ class CartItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null
     var quantity: Int = 0
-
-    @ManyToOne
-    var product: Product? = null
+    var unitPrice: Double = 0.0
+    var skuId: String? = null      // Business identifier
+    var productId: String? = null // MongoDB document ID
 }
+
+//@JvmInline
+//value class ProductId(val value: String)
+//
+//@JvmInline
+//value class SkuId(val value: String)
 
 

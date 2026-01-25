@@ -1,15 +1,12 @@
 package org.example.ecommerceexamplebackendkotlinkafka.product
 
-import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
+import org.springframework.data.annotation.Id
+import org.springframework.data.mongodb.core.mapping.Document
 
-@Entity
+@Document(collection = "products")
 class Product {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    var id: Long? = null
+    var id: String? = null
     var skuId: String = ""
     var unitPrice: Double = 0.0
     var stockLevel: Int = 0

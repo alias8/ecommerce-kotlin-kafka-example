@@ -33,12 +33,19 @@ class OrderService(
             customerEmail = order.customerEmail!!
             paymentToken = order.paymentToken!!
             cartItems = order.cartItems!!.map { item ->
-                CartItem().apply {
-                    quantity = item.quantity
-                    product =
-                        productRepository.findBySkuId(item.skuId!!)
-                            ?: throw ProductNotFoundException("Product not found: ${item.skuId}")
-
+                if(item.skuId == null) {
+                    throw ProductNotFoundException("Product not found sku provided: ${item.skuId}")
+                }
+                val product = productRepository.findBySkuId(item.skuId)
+                if (product == null) {
+                    throw ProductNotFoundException("Product not found sku provided: ${item.skuId}")
+                } else {
+                    CartItem().apply {
+                        productId = product.id
+                        quantity = item.quantity
+                        unitPrice = product.unitPrice
+                        skuId = product.skuId
+                    }
                 }
             }.toMutableList()
         })
@@ -50,8 +57,8 @@ class OrderService(
             orderId = order.orderId,
             paymentToken = order.paymentToken,
             customerEmail = order.customerEmail,
-            totalPrice = order.cartItems.sumOf { it.product!!.unitPrice * it.quantity },
-            cartItems = order.cartItems.map { CartItemRequest(it.product!!.skuId, it.quantity) }
+            totalPrice = order.cartItems.sumOf { it.unitPrice * it.quantity },
+            cartItems = order.cartItems.map { CartItemRequest(it.skuId, it.quantity) }
         )
         kafkaTemplate.send(KafkaTopic.ORDERS, order.orderId.toString(), orderCreatedEvent)
             .whenComplete { result, ex ->

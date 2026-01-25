@@ -1,9 +1,9 @@
 package org.example.ecommerceexamplebackendkotlinkafka.product
 
-import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.mongodb.repository.MongoRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface ProductRepository : JpaRepository<Product, Long> {
+interface ProductRepository : MongoRepository<Product, String> {
     fun findBySkuId(skuId: String): Product?
 }
