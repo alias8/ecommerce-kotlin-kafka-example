@@ -29,7 +29,7 @@ class ShippingService(
         groupId = KafkaGroupId.SHIPPING_SERVICE,
     )
     fun handleProductUpdatedEvent(event: ProductUpdatedEvent) {
-        if(event.sufficientStock) {
+        if (event.sufficientStock) {
             // Create a shipping record
             val shippingEvent = Shipping().apply {
                 orderId = event.orderId
