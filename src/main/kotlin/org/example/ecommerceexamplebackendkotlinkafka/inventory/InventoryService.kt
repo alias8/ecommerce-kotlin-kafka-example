@@ -4,7 +4,6 @@ import jakarta.transaction.Transactional
 import org.example.ecommerceexamplebackendkotlinkafka.order.KafkaGroupId
 import org.example.ecommerceexamplebackendkotlinkafka.order.KafkaTopic
 import org.example.ecommerceexamplebackendkotlinkafka.payment.PaymentCreatedEvent
-import org.example.ecommerceexamplebackendkotlinkafka.product.ProductNotFoundException
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.core.KafkaTemplate
@@ -32,7 +31,7 @@ class InventoryService(
     fun handlePaymentCreated(event: PaymentCreatedEvent) {
         for (item in event.cartItems) {
             val skuId = item.skuId ?: continue
-            if(inventoryRepository.findBySkuId(skuId) == null) {
+            if (inventoryRepository.findBySkuId(skuId) == null) {
                 logger.error("Product not found: $skuId")
                 continue
             }

@@ -1,7 +1,6 @@
 package org.example.ecommerceexamplebackendkotlinkafka.order
 
 import jakarta.persistence.*
-import org.example.ecommerceexamplebackendkotlinkafka.product.Product
 
 enum class OrderStatus {
     PENDING, PAID, SHIPPED, DELIVERED

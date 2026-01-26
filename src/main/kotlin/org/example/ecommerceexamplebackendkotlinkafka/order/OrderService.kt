@@ -33,7 +33,7 @@ class OrderService(
             customerEmail = order.customerEmail!!
             paymentToken = order.paymentToken!!
             cartItems = order.cartItems!!.map { item ->
-                if(item.skuId == null) {
+                if (item.skuId == null) {
                     throw ProductNotFoundException("Product not found sku provided: ${item.skuId}")
                 }
                 val product = productRepository.findBySkuId(item.skuId)
