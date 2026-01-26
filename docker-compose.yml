@@ -34,6 +34,11 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
   order-service:
     build: .
     container_name: order-service
@@ -47,3 +52,5 @@ services:
         condition: service_healthy
       mongodb:
         condition: service_healthy
+      redis:
+        condition: service_started
