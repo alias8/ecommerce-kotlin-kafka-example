@@ -1,6 +1,9 @@
-package org.example.ecommerceexamplebackendkotlinkafka.order
+package org.example.ecommerceexamplebackendkotlinkafka.product
 
 import jakarta.validation.Valid
+import org.example.ecommerceexamplebackendkotlinkafka.order.OrderFromStore
+import org.example.ecommerceexamplebackendkotlinkafka.order.OrderRequest
+import org.example.ecommerceexamplebackendkotlinkafka.order.OrderService
 import org.example.ecommerceexamplebackendkotlinkafka.product.ProductNotFoundException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -8,19 +11,13 @@ import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/orders")
-class OrderController(private val orderService: OrderService) {
-
-    @PostMapping
-    fun createOrder(@Valid @RequestBody order: OrderRequest): ResponseEntity<OrderFromStore> {
-        val createOrder = orderService.createOrder(order)
-        return ResponseEntity.status(HttpStatus.CREATED).body(createOrder)
-    }
+@RequestMapping("/products")
+class ProductController(private val productService: ProductService) {
 
     @PutMapping
-    fun updateOrderStatus(@Valid @RequestBody order: OrderRequest): ResponseEntity<OrderFromStore> {
-        val createOrder = orderService.createOrder(order)
-        return ResponseEntity.status(HttpStatus.CREATED).body(createOrder)
+    fun updateProduct(@Valid @RequestBody updatedProduct: ProductUpdateRequest): ResponseEntity<Product> {
+        val updateProduct = productService.updateProduct(updatedProduct)
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(updateProduct)
     }
 
     @ExceptionHandler(MethodArgumentNotValidException::class)
