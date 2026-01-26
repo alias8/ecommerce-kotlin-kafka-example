@@ -1,64 +1,57 @@
-package org.example.ecommerceexamplebackendkotlinkafka.product
+package org.example.ecommerceexamplebackendkotlinkafka.inventory
 
 import jakarta.transaction.Transactional
 import org.example.ecommerceexamplebackendkotlinkafka.order.KafkaGroupId
 import org.example.ecommerceexamplebackendkotlinkafka.order.KafkaTopic
 import org.example.ecommerceexamplebackendkotlinkafka.payment.PaymentCreatedEvent
+import org.example.ecommerceexamplebackendkotlinkafka.product.ProductNotFoundException
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 
 @Service
-class ProductService(
-    private val productRepository: ProductRepository,
+class InventoryService(
+    private val inventoryRepository: InventoryRepository,
     private val kafkaTemplate: KafkaTemplate<String, Any>
 ) {
     companion object {
-        private val logger = LoggerFactory.getLogger(ProductService::class.java)
+        private val logger = LoggerFactory.getLogger(InventoryService::class.java)
     }
 
     init {
-        logger.info("ProductService bean created!")
-    }
-
-    fun examples() {
-        productRepository.findReviewsByUserId("user123") // example to show complex query
-    }
-
-    fun decrementStock(skuId: String, requiredStock: Int): Long {
-        return productRepository.decrementStock(skuId, requiredStock, -requiredStock)
+        logger.info("InventoryService bean created!")
     }
 
     @Transactional
     @KafkaListener(
         topics = [KafkaTopic.PAYMENTS],
-        groupId = KafkaGroupId.PRODUCT_SERVICE,
+        groupId = KafkaGroupId.INVENTORY_SERVICE,
         containerFactory = "filterSuccessMessagesKafkaListenerContainerFactory"
     )
     fun handlePaymentCreated(event: PaymentCreatedEvent) {
         for (item in event.cartItems) {
             val skuId = item.skuId ?: continue
-            if(productRepository.findBySkuId(skuId) == null) throw ProductNotFoundException("Product not found: $skuId")
+            if(inventoryRepository.findBySkuId(skuId) == null) {
+                logger.error("Product not found: $skuId")
+                continue
+            }
             // Atomic operation: decrement only if stock >= quantity. Avoids race conditions
-            val modifiedCount = decrementStock(
-                skuId = skuId,
-                requiredStock = item.quantity,
-            )
-            val sufficientStock = modifiedCount > 0
-            val productUpdatedEvent = ProductUpdatedEvent(
+            val modifiedCount = inventoryRepository.decrementStock(skuId, item.quantity)
+            val sufficientStock = modifiedCount == 1
+            val productUpdatedEvent = InventoryUpdatedEvent(
                 orderId = event.orderId,
                 customerEmail = event.customerEmail,
                 skuId = skuId,
                 quantity = item.quantity,
                 sufficientStock = sufficientStock
             )
-            kafkaTemplate.send(KafkaTopic.PRODUCTS, event.orderId.toString(), productUpdatedEvent)
+            kafkaTemplate.send(KafkaTopic.INVENTORY, event.orderId.toString(), productUpdatedEvent)
                 .whenComplete { result, ex ->
                     if (ex == null) {
-                        logger.info("Success Kafka event sent. Service: Product. Order id ${event.orderId}")
+                        logger.info("Success Kafka event sent. Service: Inventory. Order id ${event.orderId}")
                     } else {
-                        logger.error("Failure Kafka event sent. Service: Product. Order id ${event.orderId}", ex)
+                        logger.error("Failure Kafka event sent. Service: Inventory. Order id ${event.orderId}", ex)
                     }
                 }
         }

@@ -41,6 +41,7 @@ object KafkaTopic {
     const val ORDERS = "orders"
     const val PAYMENTS = "payments"
     const val PRODUCTS = "products"
+    const val INVENTORY = "inventory"
     const val INVENTORY_ALERTS = "inventory-alerts"
     const val WAREHOUSE_ALERTS = "warehouse-alerts"
 }
@@ -49,4 +50,5 @@ object KafkaGroupId {
     const val PAYMENT_SERVICE = "payment-service"
     const val PRODUCT_SERVICE = "product-service"
     const val SHIPPING_SERVICE = "shipping-service"
+    const val INVENTORY_SERVICE = "inventory-service"
 }

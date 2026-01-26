@@ -10,7 +10,6 @@ class Product {
     var id: String? = null
     var skuId: String = ""
     var unitPrice: Double = 0.0
-    var stockLevel: Int = 0
 
     // Flexible attributes - different per product type
     var category: String = ""

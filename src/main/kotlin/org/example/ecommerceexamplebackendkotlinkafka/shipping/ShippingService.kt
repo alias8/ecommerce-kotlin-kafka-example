@@ -1,10 +1,10 @@
 package org.example.ecommerceexamplebackendkotlinkafka.shipping
 
 import jakarta.transaction.Transactional
+import org.example.ecommerceexamplebackendkotlinkafka.inventory.InventoryUpdatedEvent
 import org.example.ecommerceexamplebackendkotlinkafka.order.KafkaGroupId
 import org.example.ecommerceexamplebackendkotlinkafka.order.KafkaTopic
 import org.example.ecommerceexamplebackendkotlinkafka.order.OrderStatus
-import org.example.ecommerceexamplebackendkotlinkafka.product.ProductUpdatedEvent
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.core.KafkaTemplate
@@ -25,10 +25,10 @@ class ShippingService(
 
     @Transactional
     @KafkaListener(
-        topics = [KafkaTopic.PRODUCTS],
+        topics = [KafkaTopic.INVENTORY],
         groupId = KafkaGroupId.SHIPPING_SERVICE,
     )
-    fun handleProductUpdatedEvent(event: ProductUpdatedEvent) {
+    fun handleInventoryUpdatedEvent(event: InventoryUpdatedEvent) {
         if (event.sufficientStock) {
             // Create a shipping record
             val shippingEvent = Shipping().apply {

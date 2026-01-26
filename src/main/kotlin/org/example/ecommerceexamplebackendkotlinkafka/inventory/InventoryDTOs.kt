@@ -1,6 +1,6 @@
-package org.example.ecommerceexamplebackendkotlinkafka.product
+package org.example.ecommerceexamplebackendkotlinkafka.inventory
 
-data class ProductUpdatedEvent(
+data class InventoryUpdatedEvent(
     val orderId: Long,
     val customerEmail: String,
     val skuId: String,

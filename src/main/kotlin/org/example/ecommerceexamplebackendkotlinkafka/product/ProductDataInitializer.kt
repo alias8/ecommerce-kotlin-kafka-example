@@ -11,7 +11,6 @@ class ProductDataInitializer(private val productRepository: ProductRepository) :
             val product1 = Product().apply {
                 skuId = "SHIRT001"
                 unitPrice = 29.99
-                stockLevel = 100
                 category = "clothing"
                 attributes = mapOf(
                     "size" to "L",
@@ -30,7 +29,6 @@ class ProductDataInitializer(private val productRepository: ProductRepository) :
             val product2 = Product().apply {
                 skuId = "LAPTOP001"
                 unitPrice = 1299.99
-                stockLevel = 25
                 category = "electronics"
                 attributes = mapOf(
                     "brand" to "TechCorp",
