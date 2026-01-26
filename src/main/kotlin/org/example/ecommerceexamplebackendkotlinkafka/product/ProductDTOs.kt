@@ -11,7 +11,7 @@ data class ProductUpdateRequest(
     @field:Min(value = 0, message = "unitPrice must be greater than or equal to 0")
     var unitPrice: Double? = null,
     var category: String? = null,
-    var attributes: Map<String, Any>? = null,
+    var attributes: Map<String, String>? = null,
     var reviews: List<Review>? = null,
     var images: List<String>? = null,
 )

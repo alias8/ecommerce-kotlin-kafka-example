@@ -14,7 +14,7 @@ class Product : Serializable {
 
     // Flexible attributes - different per product type
     var category: String = ""
-    var attributes: Map<String, Any> = emptyMap()
+    var attributes: Map<String, String> = emptyMap()
     var reviews: List<Review> = emptyList()
     var images: List<String> = emptyList()
 

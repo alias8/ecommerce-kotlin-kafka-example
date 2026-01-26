@@ -69,7 +69,7 @@ class DataInitializer(
         val unitPrice: Double,
         val stockLevel: Int,
         val category: String,
-        val attributes: Map<String, Any>,
+        val attributes: Map<String, String>,
         val images: List<String>,
         val reviews: List<Review>
     )
