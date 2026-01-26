@@ -22,6 +22,14 @@ class ProductService(
         logger.info("ProductService bean created!")
     }
 
+    fun examples() {
+        productRepository.findReviewsByUserId("user123") // example to show complex query
+    }
+
+    fun decrementStock(skuId: String, requiredStock: Int): Long {
+        return productRepository.decrementStock(skuId, requiredStock, -requiredStock)
+    }
+
     @Transactional
     @KafkaListener(
         topics = [KafkaTopic.PAYMENTS],
@@ -31,12 +39,13 @@ class ProductService(
     fun handlePaymentCreated(event: PaymentCreatedEvent) {
         for (item in event.cartItems) {
             val skuId = item.skuId ?: continue
-            val productToUpdate = productRepository.findBySkuId(skuId)
-                ?: throw ProductNotFoundException("Product not found: $skuId")
-            val sufficientStock = productToUpdate.stockLevel >= item.quantity
-            productToUpdate.stockLevel -= item.quantity // subtract quantity from stock
-            productRepository.save(productToUpdate)
-
+            if(productRepository.findBySkuId(skuId) == null) throw ProductNotFoundException("Product not found: $skuId")
+            // Atomic operation: decrement only if stock >= quantity. Avoids race conditions
+            val modifiedCount = decrementStock(
+                skuId = skuId,
+                requiredStock = item.quantity,
+            )
+            val sufficientStock = modifiedCount > 0
             val productUpdatedEvent = ProductUpdatedEvent(
                 orderId = event.orderId,
                 customerEmail = event.customerEmail,
