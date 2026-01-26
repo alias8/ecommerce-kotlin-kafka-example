@@ -2,10 +2,11 @@ package org.example.ecommerceexamplebackendkotlinkafka.product
 
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
+import java.io.Serializable
 import java.time.Instant
 
 @Document(collection = "products")
-class Product {
+class Product : Serializable {
     @Id
     var id: String? = null
     var skuId: String = ""
@@ -16,6 +17,10 @@ class Product {
     var attributes: Map<String, Any> = emptyMap()
     var reviews: List<Review> = emptyList()
     var images: List<String> = emptyList()
+
+    companion object {
+        private const val serialVersionUID = 1L
+    }
 }
 
 data class Review(
@@ -23,4 +28,8 @@ data class Review(
     val rating: Int,
     val comment: String,
     val date: Instant
-)
+) : Serializable {
+    companion object {
+        private const val serialVersionUID = 1L
+    }
+}
