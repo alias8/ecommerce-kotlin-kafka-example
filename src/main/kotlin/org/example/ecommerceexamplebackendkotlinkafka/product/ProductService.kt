@@ -16,6 +16,11 @@ class ProductService(
         logger.info("ProductService bean created!")
     }
 
+    fun getProduct(skuId: String): Product {
+        return productRepository.findBySkuId(skuId)
+            ?: throw ProductNotFoundException("Product not found: $skuId")
+    }
+
     @CacheEvict("products", key = "#productUpdateRequest.skuId")
     fun updateProduct(productUpdateRequest: ProductUpdateRequest): Product {
         val product = productRepository.findBySkuId(productUpdateRequest.skuId)
