@@ -22,14 +22,24 @@ class NotificationService(
 
     @RabbitListener(queues = [RabbitMQConfig.SHIPPING_NOTIFICATIONS_QUEUE_NAME])
     fun handleNotification(message: ShippingNotificationMessage) {
-        // todo: some way to send email here, when complete, do this:
-        val notification = Notification().apply {
-            orderId = message.orderId
-            skuId = message.skuId
-            quantity = message.quantity
-            itemShippedEmailSent = true
+        val testing = false
+        if (!testing) {
+            // todo: some way to send email here, when complete, do this:
+            val notification = Notification().apply {
+                orderId = message.orderId
+                skuId = message.skuId
+                quantity = message.quantity
+                itemShippedEmailSent = true
+            }
+            notificationRepository.save(notification)
+            logger.info("NotificationService received: $message")
+        } else {
+            throw RuntimeException("Testing DLQ!")
         }
-        notificationRepository.save(notification)
-        logger.info("NotificationService received: $message")
+    }
+
+    @RabbitListener(queues = [RabbitMQConfig.DLQ_NAME])
+    fun handleDeadLetter(message: ShippingNotificationMessage) {
+        logger.error("95192 Message failed processing: $message")
     }
 }
