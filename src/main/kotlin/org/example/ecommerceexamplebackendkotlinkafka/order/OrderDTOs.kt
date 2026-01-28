@@ -51,4 +51,5 @@ object KafkaGroupId {
     const val PRODUCT_SERVICE = "product-service"
     const val SHIPPING_SERVICE = "shipping-service"
     const val INVENTORY_SERVICE = "inventory-service"
+    const val NOTIFICATION_SERVICE = "notification-service"
 }
