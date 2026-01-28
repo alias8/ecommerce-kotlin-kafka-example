@@ -29,7 +29,10 @@ class PaymentService(
         * 3. Produce new event saying result of payment
         * */
 
-        val success = Math.random() > 0.1 // Simulate API call, 90% success rate
+        /*
+        * Simulate API call, 90% success rate in prod, for development, just have it always succeed
+        * */
+        val success = Math.random() > 0
         val newPayment = Payment().apply {
             orderId = event.orderId
             totalPrice = event.totalPrice
