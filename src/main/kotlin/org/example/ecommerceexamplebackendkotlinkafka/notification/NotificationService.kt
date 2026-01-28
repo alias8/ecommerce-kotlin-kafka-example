@@ -40,6 +40,6 @@ class NotificationService(
 
     @RabbitListener(queues = [RabbitMQConfig.DLQ_NAME])
     fun handleDeadLetter(message: ShippingNotificationMessage) {
-        logger.error("95192 Message failed processing: $message")
+        logger.error("Message failed processing, DLQ listener message: $message")
     }
 }
