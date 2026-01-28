@@ -1,6 +1,7 @@
 package org.example.ecommerceexamplebackendkotlinkafka.notification
 
 import org.example.ecommerceexamplebackendkotlinkafka.config.RabbitMQConfig
+import org.example.ecommerceexamplebackendkotlinkafka.shipping.ShippingNotificationMessage
 import org.slf4j.LoggerFactory
 import org.springframework.amqp.rabbit.annotation.RabbitListener
 import org.springframework.amqp.rabbit.core.RabbitTemplate
@@ -19,8 +20,16 @@ class NotificationService(
         logger.info("NotificationService bean created!")
     }
 
-    @RabbitListener(queues = [RabbitMQConfig.QUEUE_NAME])
-    fun handleNotification(message: String) {
+    @RabbitListener(queues = [RabbitMQConfig.SHIPPING_NOTIFICATIONS_QUEUE_NAME])
+    fun handleNotification(message: ShippingNotificationMessage) {
+        // todo: some way to send email here, when complete, do this:
+        val notification = Notification().apply {
+            orderId = message.orderId
+            skuId = message.skuId
+            quantity = message.quantity
+            itemShippedEmailSent = true
+        }
+        notificationRepository.save(notification)
         logger.info("NotificationService received: $message")
     }
 }

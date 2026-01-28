@@ -49,9 +49,13 @@ class ShippingService(
             )
             kafkaTemplate.send(KafkaTopic.WAREHOUSE_ALERTS, event.skuId, warehouseEvent)
             rabbitTemplate.convertAndSend(
-                RabbitMQConfig.EXCHANGE_NAME,
-                RabbitMQConfig.ROUTING_KEY,
-                "Order ${event.orderId} shipped!"
+                RabbitMQConfig.NOTIFICATIONS_EXCHANGE,
+                RabbitMQConfig.NOTIFICATION_SHIPPING_ROUTING_KEY,
+                ShippingNotificationMessage(
+                    skuId = event.skuId,
+                    quantity = event.quantity,
+                    orderId = event.orderId,
+                )
             )
         } else {
             // Order more inventory

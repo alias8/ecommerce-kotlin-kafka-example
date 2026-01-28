@@ -10,3 +10,9 @@ data class WarehouseEvent(
     val quantity: Int,
     val orderId: Long,
 )
+
+data class ShippingNotificationMessage(
+    val skuId: String,
+    val quantity: Int,
+    val orderId: Long,
+)
