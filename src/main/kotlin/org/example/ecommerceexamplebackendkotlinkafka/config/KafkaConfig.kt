@@ -51,8 +51,10 @@ class KafkaConfig {
     }
 
     @Bean
-    fun kafkaTemplate(): KafkaTemplate<String, Any> {
-        return KafkaTemplate(producerFactory())
+    fun kafkaTemplate(producerListener: KafkaLoggingProducerListener): KafkaTemplate<String, Any> {
+        val template = KafkaTemplate(producerFactory())
+        template.setProducerListener(producerListener)
+        return template
     }
 
     @Bean

@@ -4,8 +4,7 @@ An example application demonstrating event-driven architecture for e-commerce us
 
 # To run:
 Only runs locally at the moment, not in docker.
-`docker-compose up -d kafka mongodb redis rabbitmq`
-`./gradlew bootRun`
+`run_local.sh`
 
 ## Overview
 

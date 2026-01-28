@@ -61,13 +61,5 @@ class OrderService(
             cartItems = order.cartItems.map { CartItemRequest(it.skuId, it.quantity) }
         )
         kafkaTemplate.send(KafkaTopic.ORDERS, order.orderId.toString(), orderCreatedEvent)
-            .whenComplete { result, ex ->
-                if (ex == null) {
-                    logger.info(KafkaLogMessageOrderId(KafkaTopic.ORDERS, order.orderId, true))
-                } else {
-                    logger.info(KafkaLogMessageOrderId(KafkaTopic.ORDERS, order.orderId, false))
-                }
-            }
-
     }
 }

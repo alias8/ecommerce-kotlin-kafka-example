@@ -4,7 +4,6 @@ import jakarta.transaction.Transactional
 import org.example.ecommerceexamplebackendkotlinkafka.config.RabbitMQConfig
 import org.example.ecommerceexamplebackendkotlinkafka.inventory.InventoryUpdatedEvent
 import org.example.ecommerceexamplebackendkotlinkafka.order.KafkaGroupId
-import org.example.ecommerceexamplebackendkotlinkafka.order.KafkaLogMessageOrderId
 import org.example.ecommerceexamplebackendkotlinkafka.order.KafkaTopic
 import org.example.ecommerceexamplebackendkotlinkafka.order.OrderStatus
 import org.slf4j.LoggerFactory
@@ -49,13 +48,6 @@ class ShippingService(
                 orderId = event.orderId,
             )
             kafkaTemplate.send(KafkaTopic.WAREHOUSE_ALERTS, event.skuId, warehouseEvent)
-                .whenComplete { result, ex ->
-                    if (ex == null) {
-                        logger.info(KafkaLogMessageOrderId(KafkaTopic.INVENTORY_ALERTS, event.orderId, true))
-                    } else {
-                        logger.info(KafkaLogMessageOrderId(KafkaTopic.INVENTORY_ALERTS, event.orderId, false))
-                    }
-                }
             rabbitTemplate.convertAndSend(
                 RabbitMQConfig.EXCHANGE_NAME,
                 RabbitMQConfig.ROUTING_KEY,
@@ -68,13 +60,6 @@ class ShippingService(
                 quantity = event.quantity,
             )
             kafkaTemplate.send(KafkaTopic.INVENTORY_ALERTS, event.skuId, lowStockEvent)
-                .whenComplete { result, ex ->
-                    if (ex == null) {
-                        logger.info(KafkaLogMessageOrderId(KafkaTopic.INVENTORY_ALERTS, event.orderId, true))
-                    } else {
-                        logger.info(KafkaLogMessageOrderId(KafkaTopic.INVENTORY_ALERTS, event.orderId, false))
-                    }
-                }
         }
     }
 }

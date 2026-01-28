@@ -1,7 +1,6 @@
 package org.example.ecommerceexamplebackendkotlinkafka.payment
 
 import org.example.ecommerceexamplebackendkotlinkafka.order.KafkaGroupId
-import org.example.ecommerceexamplebackendkotlinkafka.order.KafkaLogMessageOrderId
 import org.example.ecommerceexamplebackendkotlinkafka.order.KafkaTopic
 import org.example.ecommerceexamplebackendkotlinkafka.order.OrderCreatedEvent
 import org.slf4j.LoggerFactory
@@ -46,12 +45,5 @@ class PaymentService(
             customerEmail = event.customerEmail
         )
         kafkaTemplate.send(KafkaTopic.PAYMENTS, if (success) "success" else "fail", paymentCreatedEvent)
-            .whenComplete { result, ex ->
-                if (ex == null) {
-                    logger.info(KafkaLogMessageOrderId(KafkaTopic.PAYMENTS, event.orderId, true))
-                } else {
-                    logger.info(KafkaLogMessageOrderId(KafkaTopic.PAYMENTS, event.orderId, false))
-                }
-            }
     }
 }

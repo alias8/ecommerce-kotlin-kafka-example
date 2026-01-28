@@ -2,7 +2,6 @@ package org.example.ecommerceexamplebackendkotlinkafka.inventory
 
 import jakarta.transaction.Transactional
 import org.example.ecommerceexamplebackendkotlinkafka.order.KafkaGroupId
-import org.example.ecommerceexamplebackendkotlinkafka.order.KafkaLogMessageOrderId
 import org.example.ecommerceexamplebackendkotlinkafka.order.KafkaTopic
 import org.example.ecommerceexamplebackendkotlinkafka.payment.PaymentCreatedEvent
 import org.slf4j.LoggerFactory
@@ -47,13 +46,6 @@ class InventoryService(
                 sufficientStock = sufficientStock
             )
             kafkaTemplate.send(KafkaTopic.INVENTORY, event.orderId.toString(), productUpdatedEvent)
-                .whenComplete { result, ex ->
-                    if (ex == null) {
-                        logger.info(KafkaLogMessageOrderId(KafkaTopic.INVENTORY, event.orderId, true))
-                    } else {
-                        logger.info(KafkaLogMessageOrderId(KafkaTopic.INVENTORY, event.orderId, false))
-                    }
-                }
         }
     }
 }
