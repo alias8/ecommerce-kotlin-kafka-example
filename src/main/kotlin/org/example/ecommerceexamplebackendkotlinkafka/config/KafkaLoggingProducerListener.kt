@@ -14,7 +14,16 @@ class KafkaLoggingProducerListener : ProducerListener<String, Any> {
         logger.info("Kafka event sent. topic={} key={}", producerRecord.topic(), producerRecord.key())
     }
 
-    override fun onError(producerRecord: ProducerRecord<String, Any>, recordMetadata: RecordMetadata?, exception: Exception) {
-        logger.error("Failed to send Kafka event. topic={} key={}", producerRecord.topic(), producerRecord.key(), exception)
+    override fun onError(
+        producerRecord: ProducerRecord<String, Any>,
+        recordMetadata: RecordMetadata?,
+        exception: Exception
+    ) {
+        logger.error(
+            "Failed to send Kafka event. topic={} key={}",
+            producerRecord.topic(),
+            producerRecord.key(),
+            exception
+        )
     }
 }
