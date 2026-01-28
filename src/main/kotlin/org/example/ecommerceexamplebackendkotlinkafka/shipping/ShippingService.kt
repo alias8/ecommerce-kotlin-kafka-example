@@ -62,6 +62,7 @@ class ShippingService(
             val lowStockEvent = LowStockEvent(
                 skuId = event.skuId,
                 quantity = event.quantity,
+                orderId = event.orderId
             )
             kafkaTemplate.send(KafkaTopic.INVENTORY_ALERTS, event.skuId, lowStockEvent)
         }

@@ -30,12 +30,12 @@ data class CartItemRequest(
 )
 
 data class OrderCreatedEvent(
-    val orderId: Long,
+    override val orderId: Long,
     val customerEmail: String,
     val paymentToken: String,
     val totalPrice: Double,
     val cartItems: List<CartItemRequest>
-)
+) : OrderRelatedEvent
 
 object KafkaTopic {
     const val ORDERS = "orders"
@@ -52,4 +52,8 @@ object KafkaGroupId {
     const val SHIPPING_SERVICE = "shipping-service"
     const val INVENTORY_SERVICE = "inventory-service"
     const val NOTIFICATION_SERVICE = "notification-service"
+}
+
+interface OrderRelatedEvent {
+    val orderId: Long?
 }
