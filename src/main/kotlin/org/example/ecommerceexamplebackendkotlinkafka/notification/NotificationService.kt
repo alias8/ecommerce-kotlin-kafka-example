@@ -21,6 +21,6 @@ class NotificationService(
 
     @RabbitListener(queues = [RabbitMQConfig.QUEUE_NAME])
     fun handleNotification(message: String) {
-        logger.info("Received: $message")
+        logger.info("NotificationService received: $message")
     }
 }

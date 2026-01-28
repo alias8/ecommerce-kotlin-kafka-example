@@ -39,14 +39,27 @@ services:
     ports:
       - "6379:6379"
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   order-service:
     build: .
     container_name: order-service
     ports:
       - "8080:8080"
     environment:
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      SPRING_DATA_MONGODB_URI: mongodb://mongodb:27017/productdb
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      MONGODB_HOST: mongodb
+      REDIS_HOST: redis
+      RABBITMQ_HOST: rabbitmq
     depends_on:
       kafka:
         condition: service_healthy
@@ -54,3 +67,5 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+      rabbitmq:
+        condition: service_healthy

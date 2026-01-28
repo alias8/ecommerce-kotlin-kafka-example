@@ -4,6 +4,7 @@ import jakarta.transaction.Transactional
 import org.example.ecommerceexamplebackendkotlinkafka.config.RabbitMQConfig
 import org.example.ecommerceexamplebackendkotlinkafka.inventory.InventoryUpdatedEvent
 import org.example.ecommerceexamplebackendkotlinkafka.order.KafkaGroupId
+import org.example.ecommerceexamplebackendkotlinkafka.order.KafkaLogMessageOrderId
 import org.example.ecommerceexamplebackendkotlinkafka.order.KafkaTopic
 import org.example.ecommerceexamplebackendkotlinkafka.order.OrderStatus
 import org.slf4j.LoggerFactory
@@ -50,9 +51,9 @@ class ShippingService(
             kafkaTemplate.send(KafkaTopic.WAREHOUSE_ALERTS, event.skuId, warehouseEvent)
                 .whenComplete { result, ex ->
                     if (ex == null) {
-                        logger.info("Success Kafka event sent. Service: Shipping. Order id ${event.orderId}")
+                        logger.info(KafkaLogMessageOrderId(KafkaTopic.INVENTORY_ALERTS, event.orderId, true))
                     } else {
-                        logger.error("Failure Kafka event sent. Service: Shipping. Order id ${event.orderId}", ex)
+                        logger.info(KafkaLogMessageOrderId(KafkaTopic.INVENTORY_ALERTS, event.orderId, false))
                     }
                 }
             rabbitTemplate.convertAndSend(
@@ -69,9 +70,9 @@ class ShippingService(
             kafkaTemplate.send(KafkaTopic.INVENTORY_ALERTS, event.skuId, lowStockEvent)
                 .whenComplete { result, ex ->
                     if (ex == null) {
-                        logger.info("Success Kafka event sent. Service: Shipping. Order id ${event.orderId}")
+                        logger.info(KafkaLogMessageOrderId(KafkaTopic.INVENTORY_ALERTS, event.orderId, true))
                     } else {
-                        logger.error("Failure Kafka event sent. Service: Shipping. Order id ${event.orderId}", ex)
+                        logger.info(KafkaLogMessageOrderId(KafkaTopic.INVENTORY_ALERTS, event.orderId, false))
                     }
                 }
         }

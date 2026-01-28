@@ -63,9 +63,9 @@ class OrderService(
         kafkaTemplate.send(KafkaTopic.ORDERS, order.orderId.toString(), orderCreatedEvent)
             .whenComplete { result, ex ->
                 if (ex == null) {
-                    logger.info("Success Kafka event sent. Service: Order. Order id ${order.orderId}")
+                    logger.info(KafkaLogMessageOrderId(KafkaTopic.ORDERS, order.orderId, true))
                 } else {
-                    logger.info("Failure Kafka event sent. Service: Order. Order id ${order.orderId}")
+                    logger.info(KafkaLogMessageOrderId(KafkaTopic.ORDERS, order.orderId, false))
                 }
             }
 

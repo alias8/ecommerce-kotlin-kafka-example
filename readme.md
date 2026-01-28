@@ -2,6 +2,11 @@
 
 An example application demonstrating event-driven architecture for e-commerce using Kotlin, Spring Boot, and Apache Kafka.
 
+# To run:
+Only runs locally at the moment, not in docker.
+`docker-compose up -d kafka mongodb redis rabbitmq`
+`./gradlew bootRun`
+
 ## Overview
 
 This app simulates an e-commerce backend where services communicate asynchronously via Kafka events rather than direct REST calls. This pattern is used by large-scale systems (Amazon, Uber, Netflix) to handle high volumes and allow services to scale independently.

@@ -53,3 +53,7 @@ object KafkaGroupId {
     const val INVENTORY_SERVICE = "inventory-service"
     const val NOTIFICATION_SERVICE = "notification-service"
 }
+
+fun KafkaLogMessageOrderId(kafkaTopic: String, orderId: Long, success: Boolean): String {
+    return "${if (success) "Success" else "Failure"} Kafka event sent. Topic: ${kafkaTopic}. Order id ${orderId}"
+}
