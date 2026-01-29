@@ -24,6 +24,10 @@ class ReportJobService(
         return reportJobRepository.findById(id).orElse(null)
     }
 
+    /*
+    * This simulates the user calling an endpoint to create a report. It takes 30 seconds to
+    * generate. The user can poll the GET endpoint getReport to see the status of the report.
+    * */
     fun createReport(shipping: ReportRequest): Long? {
         val reportJob = ReportJob().apply {
             customerEmail = shipping.customerEmail

@@ -36,7 +36,7 @@ class RabbitMQConfig {
         val queue = QueueBuilder.durable(SHIPPING_QUEUE)
             .withArgument("x-dead-letter-exchange", DLX)
             .build()
-        val dlq = Queue("$SHIPPING_QUEUE-dlq", true)
+        val dlq = Queue(SHIPPING_DLQ, true)
 
         return Declarables(
             queue,
@@ -51,7 +51,7 @@ class RabbitMQConfig {
         val queue = QueueBuilder.durable(REPORT_QUEUE)
             .withArgument("x-dead-letter-exchange", DLX)
             .build()
-        val dlq = Queue("$REPORT_QUEUE-dlq", true)
+        val dlq = Queue(REPORT_DLQ, true)
 
         return Declarables(
             queue,
