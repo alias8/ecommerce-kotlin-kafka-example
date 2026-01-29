@@ -49,8 +49,8 @@ class ShippingService(
             )
             kafkaTemplate.send(KafkaTopic.WAREHOUSE_ALERTS, event.skuId, warehouseEvent)
             rabbitTemplate.convertAndSend(
-                RabbitMQConfig.NOTIFICATIONS_EXCHANGE,
-                RabbitMQConfig.NOTIFICATION_SHIPPING_ROUTING_KEY,
+                RabbitMQConfig.EXCHANGE,
+                RabbitMQConfig.SHIPPING_ROUTING_KEY,
                 ShippingNotificationMessage(
                     skuId = event.skuId,
                     quantity = event.quantity,

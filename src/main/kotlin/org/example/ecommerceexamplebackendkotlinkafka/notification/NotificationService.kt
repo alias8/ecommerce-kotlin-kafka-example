@@ -20,7 +20,7 @@ class NotificationService(
         logger.info("NotificationService bean created!")
     }
 
-    @RabbitListener(queues = [RabbitMQConfig.SHIPPING_NOTIFICATIONS_QUEUE_NAME])
+    @RabbitListener(queues = [RabbitMQConfig.SHIPPING_QUEUE])
     fun handleNotification(message: ShippingNotificationMessage) {
         val testing = false
         if (!testing) {
@@ -38,7 +38,7 @@ class NotificationService(
         }
     }
 
-    @RabbitListener(queues = [RabbitMQConfig.DLQ_NAME])
+    @RabbitListener(queues = [RabbitMQConfig.SHIPPING_DLQ])
     fun handleDeadLetter(message: ShippingNotificationMessage) {
         logger.error("Message failed processing, DLQ listener message: $message")
     }

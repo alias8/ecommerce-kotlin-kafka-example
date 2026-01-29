@@ -9,54 +9,59 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 class RabbitMQConfig {
     companion object {
-        const val SHIPPING_NOTIFICATIONS_QUEUE_NAME = "shipping-notifications"
-        const val NOTIFICATIONS_EXCHANGE = "notifications-exchange"
-        const val NOTIFICATION_SHIPPING_ROUTING_KEY = "notification.shipping"
+        // === SHIPPING NOTIFICATIONS ===
+        const val SHIPPING_QUEUE = "shipping-notifications"
+        const val SHIPPING_ROUTING_KEY = "notification.shipping"
+        const val SHIPPING_DLQ = "shipping-notifications-dlq"
 
-        const val DLQ_NAME = "shipping-notifications-dlq"
-        const val DLX_NAME = "notifications-dlx"
+        // === REPORT JOBS ===
+        const val REPORT_QUEUE = "report-jobs"
+        const val REPORT_ROUTING_KEY = "report.generate"
+        const val REPORT_DLQ = "report-jobs-dlq"
+
+        // === SHARED ===
+        const val EXCHANGE = "app-exchange"  // one exchange can route to multiple queues
+        const val DLX = "dead-letter-exchange"  // one DLX can handle all dead letters
     }
 
+    // === EXCHANGE (shared by all queues) ===
     @Bean
-    fun queue(): Queue {
-        return QueueBuilder
-            .durable(SHIPPING_NOTIFICATIONS_QUEUE_NAME)
-            .withArgument("x-dead-letter-exchange", DLX_NAME)
+    fun exchange(): TopicExchange = TopicExchange(EXCHANGE)
+
+    @Bean
+    fun dlx(): DirectExchange = DirectExchange(DLX)
+
+    @Bean
+    fun shipping(exchange: TopicExchange, dlx: DirectExchange): Declarables {
+        val queue = QueueBuilder.durable(SHIPPING_QUEUE)
+            .withArgument("x-dead-letter-exchange", DLX)
             .build()
+        val dlq = Queue("$SHIPPING_QUEUE-dlq", true)
+
+        return Declarables(
+            queue,
+            dlq,
+            BindingBuilder.bind(queue).to(exchange).with(SHIPPING_ROUTING_KEY),
+            BindingBuilder.bind(dlq).to(dlx).with(SHIPPING_ROUTING_KEY)
+        )
     }
 
     @Bean
-    fun exchange(): TopicExchange {
-        return TopicExchange(NOTIFICATIONS_EXCHANGE)
+    fun reportJob(exchange: TopicExchange, dlx: DirectExchange): Declarables {
+        val queue = QueueBuilder.durable(REPORT_QUEUE)
+            .withArgument("x-dead-letter-exchange", DLX)
+            .build()
+        val dlq = Queue("$REPORT_QUEUE-dlq", true)
+
+        return Declarables(
+            queue,
+            dlq,
+            BindingBuilder.bind(queue).to(exchange).with(REPORT_ROUTING_KEY),
+            BindingBuilder.bind(dlq).to(dlx).with(REPORT_ROUTING_KEY)
+        )
     }
 
-    @Bean
-    fun binding(queue: Queue, exchange: TopicExchange): Binding {
-        return BindingBuilder
-            .bind(queue)
-            .to(exchange)
-            .with(NOTIFICATION_SHIPPING_ROUTING_KEY)
-    }
-
-    @Bean
-    fun dlq(): Queue {
-        return Queue(DLQ_NAME, true)
-
-    }
-
-    @Bean
-    fun dlx(): DirectExchange {
-        return DirectExchange(DLX_NAME)
-    }
-
-    @Bean
-    fun dlqBinding(dlq: Queue, dlx: DirectExchange): Binding {
-        return BindingBuilder
-            .bind(dlq)
-            .to(dlx)
-            .with(NOTIFICATION_SHIPPING_ROUTING_KEY)
-    }
-
+    // === CONVERTER ===
     @Bean
     fun messageConverter(): MessageConverter = Jackson2JsonMessageConverter()
 }
