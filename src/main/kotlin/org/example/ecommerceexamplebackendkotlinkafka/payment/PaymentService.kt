@@ -3,6 +3,8 @@ package org.example.ecommerceexamplebackendkotlinkafka.payment
 import org.example.ecommerceexamplebackendkotlinkafka.order.KafkaGroupId
 import org.example.ecommerceexamplebackendkotlinkafka.order.KafkaTopic
 import org.example.ecommerceexamplebackendkotlinkafka.order.OrderCreatedEvent
+import org.example.ecommerceexamplebackendkotlinkafka.order.OrderService
+import org.example.ecommerceexamplebackendkotlinkafka.order.OrderStatus
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.core.KafkaTemplate
@@ -11,7 +13,8 @@ import org.springframework.stereotype.Service
 @Service
 class PaymentService(
     private val paymentRepository: PaymentRepository,
-    private val kafkaTemplate: KafkaTemplate<String, Any>
+    private val kafkaTemplate: KafkaTemplate<String, Any>,
+    private val orderService: OrderService
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(PaymentService::class.java)
@@ -40,6 +43,10 @@ class PaymentService(
             this.success = success
         }
         paymentRepository.save(newPayment)
+
+        if (success) {
+            orderService.updateStatus(event.orderId, OrderStatus.PAID)
+        }
 
         val paymentCreatedEvent = PaymentCreatedEvent(
             success = success,

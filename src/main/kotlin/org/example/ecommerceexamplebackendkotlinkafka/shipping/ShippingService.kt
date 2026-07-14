@@ -5,6 +5,7 @@ import org.example.ecommerceexamplebackendkotlinkafka.config.RabbitMQConfig
 import org.example.ecommerceexamplebackendkotlinkafka.inventory.InventoryUpdatedEvent
 import org.example.ecommerceexamplebackendkotlinkafka.order.KafkaGroupId
 import org.example.ecommerceexamplebackendkotlinkafka.order.KafkaTopic
+import org.example.ecommerceexamplebackendkotlinkafka.order.OrderService
 import org.example.ecommerceexamplebackendkotlinkafka.order.OrderStatus
 import org.slf4j.LoggerFactory
 import org.springframework.amqp.rabbit.core.RabbitTemplate
@@ -16,7 +17,8 @@ import org.springframework.stereotype.Service
 class ShippingService(
     private val shippingRepository: ShippingRepository,
     private val kafkaTemplate: KafkaTemplate<String, Any>,
-    private val rabbitTemplate: RabbitTemplate
+    private val rabbitTemplate: RabbitTemplate,
+    private val orderService: OrderService
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(ShippingService::class.java)
@@ -41,6 +43,7 @@ class ShippingService(
                 quantity = event.quantity
             }
             shippingRepository.save(shippingEvent)
+            orderService.updateStatus(event.orderId, OrderStatus.SHIPPED)
 
             val warehouseEvent = WarehouseEvent(
                 skuId = event.skuId,

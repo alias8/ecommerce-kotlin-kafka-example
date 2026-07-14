@@ -59,8 +59,13 @@ class OrderService(
 
     @Transactional
     fun updateOrderStatus(orderId: Long, request: OrderStatusUpdateRequest): OrderFromStore {
+        return updateStatus(orderId, request.status!!)
+    }
+
+    @Transactional
+    fun updateStatus(orderId: Long, status: OrderStatus): OrderFromStore {
         val order = getOrder(orderId)
-        order.status = request.status!!
+        order.status = status
         return orderFromStoreRepository.save(order)
     }
 

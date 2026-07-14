@@ -11,18 +11,22 @@ Client
   |  POST /orders
   v
 OrderController -> OrderService
-  |  saves order (H2/JPA), emits OrderCreatedEvent -> Kafka "orders"
+  |  saves order (H2/JPA, status=PENDING), emits OrderCreatedEvent -> Kafka "orders"
   v
 PaymentService (Kafka consumer)
-  |  simulates a payment call, saves Payment, emits PaymentCreatedEvent -> Kafka "payments"
+  |  simulates a payment call, saves Payment, sets order status=PAID on success
+  |  emits PaymentCreatedEvent -> Kafka "payments"
   v
-ProductService / InventoryService (Kafka consumer)
+InventoryService (Kafka consumer)
   |  updates stock, emits InventoryUpdatedEvent -> Kafka "inventory"
   v
 ShippingService (Kafka consumer)
-  |  sufficient stock -> creates a Shipping record, emits WarehouseEvent (Kafka) + RabbitMQ notification
+  |  sufficient stock -> creates a Shipping record, sets order status=SHIPPED
+  |               emits WarehouseEvent (Kafka) + RabbitMQ notification
   |  insufficient stock -> emits LowStockEvent -> Kafka "inventory-alerts"
 ```
+
+The order's `status` field is updated automatically as it moves through this pipeline — `GET /orders/{orderId}` right after placing an order will show it transition `PENDING` -> `PAID` -> `SHIPPED` within a couple seconds, with no polling or manual intervention.
 
 `ReportController` demonstrates a second async pattern: `POST /report` returns immediately with a job id while a RabbitMQ consumer does the (simulated 30s) work in the background; the client polls `GET /report/{id}` for status.
 
@@ -81,7 +85,7 @@ Content-Type: application/json
   ]
 }
 ```
-Returns `201 Created` with the persisted order (status `PENDING`) and kicks off the Kafka pipeline above.
+Returns `201 Created` with the persisted order (status `PENDING`) and kicks off the Kafka pipeline above. The order's `status` is then updated automatically as it moves through the pipeline: `PaymentService` sets it to `PAID` on a successful payment, and `ShippingService` sets it to `SHIPPED` once a shipment is created — no polling or manual calls needed to see it happen.
 
 **Get an order**
 ```bash
@@ -95,7 +99,7 @@ Content-Type: application/json
 
 { "status": "PAID" }
 ```
-Valid values: `PENDING`, `PAID`, `SHIPPED`, `DELIVERED`.
+Valid values: `PENDING`, `PAID`, `SHIPPED`, `DELIVERED`. Mainly useful for manually setting `DELIVERED` (there's no simulated "carrier delivered" event) or for testing/demoing state transitions directly.
 
 ### Products
 
@@ -140,8 +144,9 @@ GET /report/{id}
 This is scoped as a demo of the event-driven pattern, not a full storefront API. Notably missing, by design for now:
 
 - **No auth** — no login/customer accounts; `paymentToken` is a free-text stand-in for a real payment gateway.
-- **Order status is set manually** via `PUT /orders/{orderId}/status`. The Kafka pipeline (payment, shipping) doesn't yet write back to the order's status automatically — that would be the natural next step to fully close the loop.
 - **No cart/checkout session** — a frontend is expected to build cart state client-side and submit it as one `cartItems` list.
+- **`DELIVERED` has no automatic trigger** — every other status transition is event-driven (see Architecture above), but there's no simulated carrier webhook, so it's set manually via `PUT /orders/{orderId}/status`.
+- **Failed payments and backorders don't move the order status** — if `PaymentService` marks a payment unsuccessful, or `ShippingService` finds insufficient stock, the order is left at its current status rather than transitioning to something like `PAYMENT_FAILED` or `BACKORDERED`. Those statuses don't exist yet.
 - **Single-broker Kafka/RabbitMQ** via `docker-compose`, meant for local dev, not a production cluster.
 
 ## Project structure
