@@ -21,6 +21,10 @@ class ProductService(
             ?: throw ProductNotFoundException("Product not found: $skuId")
     }
 
+    fun getProducts(category: String?): List<Product> {
+        return if (category != null) productRepository.findByCategory(category) else productRepository.findAll()
+    }
+
     @CacheEvict("products", key = "#productUpdateRequest.skuId")
     fun updateProduct(productUpdateRequest: ProductUpdateRequest): Product {
         val product = productRepository.findBySkuId(productUpdateRequest.skuId)

@@ -1,34 +1,32 @@
 # E-Commerce Example Backend (Kotlin + Kafka)
 
-An example application demonstrating event-driven architecture for e-commerce using Kotlin, Spring Boot, and Apache Kafka.
+A backend that simulates an e-commerce order pipeline using **event-driven architecture**: services don't call each other directly over REST — they publish and react to events on Kafka (and RabbitMQ for background jobs). This is the same pattern large-scale systems (Amazon, Uber, Netflix) use to handle high volume and let services fail/scale independently.
 
-# To run:
-Only runs locally at the moment, not in docker.
-`run_local.sh`
-
-## Overview
-
-This app simulates an e-commerce backend where services communicate asynchronously via Kafka events rather than direct REST calls. This pattern is used by large-scale systems (Amazon, Uber, Netflix) to handle high volumes and allow services to scale independently.
+This is a learning/portfolio project, not a production system. It intentionally trades off some things (auth, payment gateway integration, a real message broker cluster) to keep the focus on the event-driven flow.
 
 ## Architecture
 
 ```
-Customer places order
-        |
-   OrderService
-   (saves order, emits OrderCreatedEvent)
-        |
-   PaymentService
-   (processes payment, emits PaymentCreatedEvent)
-        |
-   ProductService
-   (updates inventory, emits ProductUpdatedEvent)
-        |
-   ShippingService
-   (creates shipment OR emits LowStockEvent)
+Client
+  |  POST /orders
+  v
+OrderController -> OrderService
+  |  saves order (H2/JPA), emits OrderCreatedEvent -> Kafka "orders"
+  v
+PaymentService (Kafka consumer)
+  |  simulates a payment call, saves Payment, emits PaymentCreatedEvent -> Kafka "payments"
+  v
+ProductService / InventoryService (Kafka consumer)
+  |  updates stock, emits InventoryUpdatedEvent -> Kafka "inventory"
+  v
+ShippingService (Kafka consumer)
+  |  sufficient stock -> creates a Shipping record, emits WarehouseEvent (Kafka) + RabbitMQ notification
+  |  insufficient stock -> emits LowStockEvent -> Kafka "inventory-alerts"
 ```
 
-## Kafka Topics
+`ReportController` demonstrates a second async pattern: `POST /report` returns immediately with a job id while a RabbitMQ consumer does the (simulated 30s) work in the background; the client polls `GET /report/{id}` for status.
+
+## Kafka topics
 
 | Topic | Purpose |
 |-------|---------|
@@ -38,24 +36,39 @@ Customer places order
 | `warehouse-alerts` | Notify warehouse to pick/pack items |
 | `inventory-alerts` | Low stock alerts for restocking |
 
-## Tech Stack
+## Tech stack
 
-- Kotlin
-- Spring Boot
-- Spring Kafka
-- Spring Data JPA
-- H2 Database (in-memory)
+- Kotlin + Spring Boot
+- Spring Kafka (event bus) + Spring AMQP / RabbitMQ (background jobs, retries)
+- Spring Data JPA + H2 (orders, payments, shipping, reports — relational)
+- Spring Data MongoDB (product catalog — flexible per-category attributes)
+- Spring Data Redis (product read-through cache)
 
-## Running the App
+## Running locally
+
+Requires Docker (for Kafka/MongoDB/Redis/RabbitMQ) and JDK 21.
 
 ```bash
-./run_docker_start.sh
+./run_local.sh
 ```
 
-## API
+This starts the infrastructure containers via `docker-compose` and then runs the Spring Boot app on the host with `./gradlew bootRun`, so you get fast reload without rebuilding a container on every change.
 
-### Create Order
+To run the whole stack (app included) in Docker instead:
 
+```bash
+docker-compose up --build
+```
+
+The app listens on `http://localhost:8080`. Two products (`SHIRT001`, `LAPTOP001`) are seeded on startup — see `DataInitializer`.
+
+A frontend running on `http://localhost:3000` or `http://localhost:5173` can call the API directly; CORS is preconfigured for those origins via `app.cors.allowed-origins` in `application.properties`.
+
+## API reference
+
+### Orders
+
+**Create an order**
 ```bash
 POST /orders
 Content-Type: application/json
@@ -64,15 +77,73 @@ Content-Type: application/json
   "customerEmail": "customer@example.com",
   "paymentToken": "tok_123",
   "cartItems": [
-    { "skuId": "SKU001", "quantity": 2 }
+    { "skuId": "SHIRT001", "quantity": 2 }
   ]
 }
 ```
+Returns `201 Created` with the persisted order (status `PENDING`) and kicks off the Kafka pipeline above.
 
-## Purpose
+**Get an order**
+```bash
+GET /orders/{orderId}
+```
 
-This is a learning/example application to demonstrate:
-- Event-driven microservice patterns
-- Kafka producers and consumers in Spring Boot
-- Asynchronous service communication
-- Handling partial fulfillment (some items ship, others backordered)
+**Update an order's status**
+```bash
+PUT /orders/{orderId}/status
+Content-Type: application/json
+
+{ "status": "PAID" }
+```
+Valid values: `PENDING`, `PAID`, `SHIPPED`, `DELIVERED`.
+
+### Products
+
+**List products** (optionally filter by category)
+```bash
+GET /products
+GET /products?category=electronics
+```
+
+**Get a single product**
+```bash
+GET /products/{skuId}
+```
+
+**Update a product**
+```bash
+PUT /products
+Content-Type: application/json
+
+{ "skuId": "SHIRT001", "unitPrice": 24.99 }
+```
+
+### Reports (async job example)
+
+**Request a report**
+```bash
+POST /report
+Content-Type: application/json
+
+{ "customerEmail": "customer@example.com" }
+```
+Returns the new job's id immediately; the report is generated by a RabbitMQ consumer in the background.
+
+**Check report status**
+```bash
+GET /report/{id}
+```
+`status` moves from `PENDING` -> `PROCESSING` -> `COMPLETED`.
+
+## Known limitations / roadmap
+
+This is scoped as a demo of the event-driven pattern, not a full storefront API. Notably missing, by design for now:
+
+- **No auth** — no login/customer accounts; `paymentToken` is a free-text stand-in for a real payment gateway.
+- **Order status is set manually** via `PUT /orders/{orderId}/status`. The Kafka pipeline (payment, shipping) doesn't yet write back to the order's status automatically — that would be the natural next step to fully close the loop.
+- **No cart/checkout session** — a frontend is expected to build cart state client-side and submit it as one `cartItems` list.
+- **Single-broker Kafka/RabbitMQ** via `docker-compose`, meant for local dev, not a production cluster.
+
+## Project structure
+
+Each domain (`order`, `product`, `payment`, `shipping`, `inventory`, `notification`, `report`) is a package containing its controller (if it has one), service, repository, entity/DTOs — a "package by feature" layout rather than a layered one.

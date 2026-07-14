@@ -52,6 +52,18 @@ class OrderService(
         return savedOrder
     }
 
+    fun getOrder(orderId: Long): OrderFromStore {
+        return orderFromStoreRepository.findById(orderId)
+            .orElseThrow { OrderNotFoundException("Order not found: $orderId") }
+    }
+
+    @Transactional
+    fun updateOrderStatus(orderId: Long, request: OrderStatusUpdateRequest): OrderFromStore {
+        val order = getOrder(orderId)
+        order.status = request.status!!
+        return orderFromStoreRepository.save(order)
+    }
+
     fun sendKafkaEvent(order: OrderFromStore) {
         val orderCreatedEvent = OrderCreatedEvent(
             orderId = order.orderId,

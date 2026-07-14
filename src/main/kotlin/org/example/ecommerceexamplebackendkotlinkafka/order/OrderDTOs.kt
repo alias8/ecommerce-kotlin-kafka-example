@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
+import jakarta.validation.constraints.NotNull
 
 data class OrderRequest(
     @field:NotBlank(message = "customerEmail is required")
@@ -27,6 +28,11 @@ data class CartItemRequest(
 
     @field:Min(value = 1, message = "quantity must be at least 1")
     val quantity: Int = 0
+)
+
+data class OrderStatusUpdateRequest(
+    @field:NotNull(message = "status is required")
+    val status: OrderStatus?
 )
 
 data class OrderCreatedEvent(

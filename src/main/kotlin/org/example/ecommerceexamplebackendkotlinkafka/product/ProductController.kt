@@ -10,6 +10,11 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/products")
 class ProductController(private val productService: ProductService) {
 
+    @GetMapping
+    fun getProducts(@RequestParam(required = false) category: String?): ResponseEntity<List<Product>> {
+        return ResponseEntity.ok(productService.getProducts(category))
+    }
+
     @GetMapping("/{skuId}")
     fun getProduct(@PathVariable skuId: String): ResponseEntity<Product> {
         val product = productService.getProduct(skuId)

@@ -8,4 +8,5 @@ import org.springframework.stereotype.Repository
 interface ProductRepository : MongoRepository<Product, String> {
     @Cacheable("products")
     fun findBySkuId(skuId: String): Product?
+    fun findByCategory(category: String): List<Product>
 }
