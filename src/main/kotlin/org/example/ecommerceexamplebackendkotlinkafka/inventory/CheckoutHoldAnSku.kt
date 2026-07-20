@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component
 //
 // e.g. "stock:checkout-hold:SKU1" -> { "abc-123": 1784580832000, "xyz-999": 1784580900000 }
 @Component
-class CheckoutHoldIndex(private val redisTemplate: StringRedisTemplate) {
+class CheckoutHoldAnSku(private val redisTemplate: StringRedisTemplate) {
 
     fun purgeExpired(skuId: String, now: Long) {
         redisTemplate.opsForZSet().removeRangeByScore(key(skuId), Double.NEGATIVE_INFINITY, now.toDouble())

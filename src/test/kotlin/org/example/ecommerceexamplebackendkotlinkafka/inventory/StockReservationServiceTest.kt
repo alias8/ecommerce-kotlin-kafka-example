@@ -39,8 +39,8 @@ class StockReservationServiceTest {
     }
 
     private lateinit var redisTemplate: StringRedisTemplate
-    private lateinit var checkoutHoldIndex: CheckoutHoldIndex
-    private lateinit var checkoutHoldRecord: CheckoutHoldRecord
+    private lateinit var checkoutHoldAnSku: CheckoutHoldAnSku
+    private lateinit var checkoutHoldId: CheckoutHoldId
     private lateinit var inventoryRepository: InventoryRepository
     private lateinit var service: StockReservationService
 
@@ -50,10 +50,10 @@ class StockReservationServiceTest {
         redisTemplate.afterPropertiesSet()
         redisTemplate.connectionFactory!!.connection.use { it.serverCommands().flushDb() }
 
-        checkoutHoldIndex = CheckoutHoldIndex(redisTemplate)
-        checkoutHoldRecord = CheckoutHoldRecord(redisTemplate)
+        checkoutHoldAnSku = CheckoutHoldAnSku(redisTemplate)
+        checkoutHoldId = CheckoutHoldId(redisTemplate)
         inventoryRepository = mock()
-        service = StockReservationService(checkoutHoldIndex, checkoutHoldRecord, inventoryRepository)
+        service = StockReservationService(checkoutHoldAnSku, checkoutHoldId, inventoryRepository)
     }
 
     private fun stockOf(skuId: String, level: Int) {
@@ -102,8 +102,8 @@ class StockReservationServiceTest {
         stockOf("SKU1", 10)
 
         val expiredReservationId = "expired-reservation"
-        checkoutHoldIndex.recordHold("SKU1", expiredReservationId, System.currentTimeMillis() - 60_000)
-        checkoutHoldRecord.put(expiredReservationId, "SKU1", 9)
+        checkoutHoldAnSku.recordHold("SKU1", expiredReservationId, System.currentTimeMillis() - 60_000)
+        checkoutHoldId.put(expiredReservationId, "SKU1", 9)
 
         // The stale hold above claims 9 of 10 units, but it's already expired and should be purged on read
         val reservationId = service.reserve(listOf(CartItemRequest("SKU1", 8)))

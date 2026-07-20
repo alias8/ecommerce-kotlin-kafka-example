@@ -11,7 +11,7 @@ import java.time.Duration
 //
 // e.g. "stock:checkout:abc-123" -> { "SKU1": 3, "SKU2": 1 }
 @Component
-class CheckoutHoldRecord(private val redisTemplate: StringRedisTemplate) {
+class CheckoutHoldId(private val redisTemplate: StringRedisTemplate) {
 
     fun quantityOf(reservationId: String, skuId: String): Int =
         redisTemplate.opsForHash<String, String>().get(key(reservationId), skuId)?.toIntOrNull() ?: 0

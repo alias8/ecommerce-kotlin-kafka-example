@@ -7,8 +7,8 @@ import java.util.UUID
 
 @Service
 class StockReservationService(
-    private val checkoutHoldIndex: CheckoutHoldIndex,
-    private val checkoutHoldRecord: CheckoutHoldRecord,
+    private val checkoutHoldAnSku: CheckoutHoldAnSku,
+    private val checkoutHoldId: CheckoutHoldId,
     private val inventoryRepository: InventoryRepository
 ) {
     companion object {
@@ -30,27 +30,27 @@ class StockReservationService(
         val expiresAt = now + RESERVATION_TTL.toMillis()
         items.forEach { item ->
             val skuId = item.skuId!!
-            checkoutHoldIndex.recordHold(skuId, reservationId, expiresAt)
-            checkoutHoldRecord.put(reservationId, skuId, item.quantity)
+            checkoutHoldAnSku.recordHold(skuId, reservationId, expiresAt)
+            checkoutHoldId.put(reservationId, skuId, item.quantity)
         }
-        checkoutHoldRecord.expireAfter(reservationId, RESERVATION_TTL)
+        checkoutHoldId.expireAfter(reservationId, RESERVATION_TTL)
         return reservationId
     }
 
     // Releases a checkout hold early once its order is no longer relying on it (e.g. payment succeeded).
     fun release(reservationId: String?) {
         if (reservationId == null) return
-        checkoutHoldRecord.skuIds(reservationId).forEach { skuId ->
-            checkoutHoldIndex.releaseHold(skuId, reservationId)
+        checkoutHoldId.skuIds(reservationId).forEach { skuId ->
+            checkoutHoldAnSku.releaseHold(skuId, reservationId)
         }
-        checkoutHoldRecord.delete(reservationId)
+        checkoutHoldId.delete(reservationId)
     }
 
     // How many units of this SKU are free to reserve right now.
     private fun availableStock(skuId: String, now: Long): Int {
-        checkoutHoldIndex.purgeExpired(skuId, now)
-        val reservedQuantity = checkoutHoldIndex.activeReservationIds(skuId)
-            .sumOf { reservationId -> checkoutHoldRecord.quantityOf(reservationId, skuId) }
+        checkoutHoldAnSku.purgeExpired(skuId, now)
+        val reservedQuantity = checkoutHoldAnSku.activeReservationIds(skuId)
+            .sumOf { reservationId -> checkoutHoldId.quantityOf(reservationId, skuId) }
         val stockLevel = inventoryRepository.findBySkuId(skuId)?.stockLevel ?: 0
         return stockLevel - reservedQuantity
     }
