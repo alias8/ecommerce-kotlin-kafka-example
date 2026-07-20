@@ -8,4 +8,5 @@ data class PaymentCreatedEvent(
     val cartItems: List<CartItemRequest>,
     override val orderId: Long,
     val customerEmail: String,
+    val reservationId: String? = null,
 ) : OrderRelatedEvent

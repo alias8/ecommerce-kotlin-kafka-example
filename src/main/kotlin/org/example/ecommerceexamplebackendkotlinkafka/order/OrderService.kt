@@ -32,6 +32,7 @@ class OrderService(
         val savedOrder = orderFromStoreRepository.save(OrderFromStore().apply {
             customerEmail = order.customerEmail!!
             paymentToken = order.paymentToken!!
+            reservationId = order.reservationId
             cartItems = order.cartItems!!.map { item ->
                 if (item.skuId == null) {
                     throw ProductNotFoundException("Product not found sku provided: ${item.skuId}")
@@ -75,7 +76,8 @@ class OrderService(
             paymentToken = order.paymentToken,
             customerEmail = order.customerEmail,
             totalPrice = order.cartItems.sumOf { it.unitPrice * it.quantity },
-            cartItems = order.cartItems.map { CartItemRequest(it.skuId, it.quantity) }
+            cartItems = order.cartItems.map { CartItemRequest(it.skuId, it.quantity) },
+            reservationId = order.reservationId
         )
         kafkaTemplate.send(KafkaTopic.ORDERS, order.orderId.toString(), orderCreatedEvent)
     }

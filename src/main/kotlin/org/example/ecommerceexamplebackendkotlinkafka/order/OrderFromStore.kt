@@ -18,6 +18,7 @@ class OrderFromStore {
     @JoinColumn(name = "order_id")
     var cartItems: MutableList<CartItem> = emptyList<CartItem>().toMutableList()
     var paymentToken: String = ""
+    var reservationId: String? = null
 
     @Enumerated(EnumType.STRING)
     var status: OrderStatus = OrderStatus.PENDING

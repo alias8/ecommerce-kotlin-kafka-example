@@ -52,7 +52,8 @@ class PaymentService(
             success = success,
             cartItems = event.cartItems,
             orderId = event.orderId,
-            customerEmail = event.customerEmail
+            customerEmail = event.customerEmail,
+            reservationId = event.reservationId
         )
         kafkaTemplate.send(KafkaTopic.PAYMENTS, if (success) "success" else "fail", paymentCreatedEvent)
     }

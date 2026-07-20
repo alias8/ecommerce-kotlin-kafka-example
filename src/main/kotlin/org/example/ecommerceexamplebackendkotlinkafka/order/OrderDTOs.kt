@@ -18,7 +18,10 @@ data class OrderRequest(
 
     @field:NotEmpty(message = "cartItems cannot be empty")
     @field:Valid
-    val cartItems: List<CartItemRequest>? = null
+    val cartItems: List<CartItemRequest>? = null,
+
+    // Set internally when checkout came through a stock reservation, so it can be released once payment succeeds.
+    val reservationId: String? = null
 )
 
 @Embeddable
@@ -40,7 +43,8 @@ data class OrderCreatedEvent(
     val customerEmail: String,
     val paymentToken: String,
     val totalPrice: Double,
-    val cartItems: List<CartItemRequest>
+    val cartItems: List<CartItemRequest>,
+    val reservationId: String? = null
 ) : OrderRelatedEvent
 
 object KafkaTopic {

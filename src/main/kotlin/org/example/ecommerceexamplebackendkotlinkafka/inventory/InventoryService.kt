@@ -12,7 +12,8 @@ import org.springframework.stereotype.Service
 @Service
 class InventoryService(
     private val inventoryRepository: InventoryRepository,
-    private val kafkaTemplate: KafkaTemplate<String, Any>
+    private val kafkaTemplate: KafkaTemplate<String, Any>,
+    private val stockReservationService: StockReservationService
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(InventoryService::class.java)
@@ -47,5 +48,7 @@ class InventoryService(
             )
             kafkaTemplate.send(KafkaTopic.INVENTORY, event.orderId.toString(), productUpdatedEvent)
         }
+        // Real stock now reflects this order, so the temporary checkout hold is no longer needed.
+        stockReservationService.release(event.reservationId)
     }
 }

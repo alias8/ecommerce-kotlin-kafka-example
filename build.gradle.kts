@@ -43,6 +43,7 @@ dependencies {
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
     testImplementation("org.springframework.kafka:spring-kafka-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+    testImplementation("com.github.codemonstur:embedded-redis:1.4.3")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
