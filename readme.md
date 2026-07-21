@@ -11,7 +11,7 @@ Client
   |  POST /orders
   v
 OrderController -> OrderService
-  |  saves order (H2/JPA, status=PENDING), emits OrderCreatedEvent -> Kafka "orders"
+  |  saves order (Postgres/JPA, status=PENDING), emits OrderCreatedEvent -> Kafka "orders"
   v
 PaymentService (Kafka consumer)
   |  simulates a payment call, saves Payment, sets order status=PAID on success
@@ -44,13 +44,13 @@ The order's `status` field is updated automatically as it moves through this pip
 
 - Kotlin + Spring Boot
 - Spring Kafka (event bus) + Spring AMQP / RabbitMQ (background jobs, retries)
-- Spring Data JPA + H2 (orders, payments, shipping, reports — relational)
+- Spring Data JPA + PostgreSQL, schema managed by Flyway (orders, payments, shipping, reports — relational); tests run against an in-memory H2 database
 - Spring Data MongoDB (product catalog — flexible per-category attributes)
 - Spring Data Redis (product read-through cache)
 
 ## Running locally
 
-Requires Docker (for Kafka/MongoDB/Redis/RabbitMQ) and JDK 21.
+Requires Docker (for Kafka/MongoDB/Postgres/Redis/RabbitMQ) and JDK 21.
 
 ```bash
 ./run_local.sh

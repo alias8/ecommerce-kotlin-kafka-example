@@ -4,8 +4,8 @@
 echo "Stopping any running containers..."
 docker-compose down -v
 
-echo "Starting infrastructure (Kafka, MongoDB, Redis, RabbitMQ)..."
-docker-compose up -d kafka mongodb redis rabbitmq
+echo "Starting infrastructure (Kafka, MongoDB, Postgres, Redis, RabbitMQ)..."
+docker-compose up -d kafka mongodb postgres redis rabbitmq
 
 echo "Waiting for services to be ready..."
 sleep 5
