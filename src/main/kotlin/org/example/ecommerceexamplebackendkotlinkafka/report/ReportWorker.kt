@@ -8,8 +8,7 @@ import java.time.Duration
 import java.time.Instant
 
 /**
- * The slow side of report jobs. Transport-agnostic: RabbitReportListener or SqsReportListener
- * receives the message and calls [processReport].
+ * The slow side of report jobs. SqsReportListener receives the message and calls [processReport].
  *
  * Only created when app.worker.enabled=true, so the same JAR can run as:
  *   web:    --app.worker.enabled=false                  (serves HTTP, never consumes)
@@ -29,9 +28,8 @@ class ReportWorker(
         private val logger = LoggerFactory.getLogger(ReportWorker::class.java)
 
         // Must be longer than the slowest real job, or a live worker's job gets taken over.
-        // (RabbitMQ only redelivers if the consumer's connection drops or it exceeds the
-        // broker's ack timeout, 30 min by default; SQS redelivers after the visibility timeout,
-        // see SqsReportListener.)
+        // Separate from the SQS visibility timeout (see SqsReportListener): that decides when SQS
+        // redelivers; this decides when a redelivered job may be taken over from a dead worker.
         private val CLAIM_LEASE: Duration = Duration.ofMinutes(10)
     }
 

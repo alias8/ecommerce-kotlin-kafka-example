@@ -1,6 +1,6 @@
 package org.example.ecommerceexamplebackendkotlinkafka.outbox
 
-import org.example.ecommerceexamplebackendkotlinkafka.messaging.MessagePublisher
+import org.example.ecommerceexamplebackendkotlinkafka.messaging.SqsMessagePublisher
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.scheduling.annotation.Scheduled
@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
 /**
- * Publishes outbox rows to the broker (RabbitMQ or SQS, via [MessagePublisher]). Runs in the worker process.
+ * Publishes outbox rows to SQS. Runs in the worker process.
  *
  * Failure cases:
  * - Broker down: send throws, the transaction rolls back, rows stay unsent, next tick retries.
@@ -19,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional
 @ConditionalOnProperty("app.worker.enabled", havingValue = "true")
 class OutboxRelay(
     private val outboxRepository: OutboxRepository,
-    private val messagePublisher: MessagePublisher,
+    private val messagePublisher: SqsMessagePublisher,
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(OutboxRelay::class.java)

@@ -25,10 +25,10 @@ class ReportJobService(
     * We save a PENDING job, queue it, and return the id straight away.
     * The user polls GET /report/{id} to see the status.
     *
-    * Before: save the job, then rabbitTemplate.convertAndSend(...). Two systems, no shared
+    * Without an outbox: save the job, then send to the queue. Two systems, no shared
     * transaction: a crash between the two lines left a PENDING job that never ran.
     * Now: the job row and the outbox row commit together in one Postgres transaction.
-    * OutboxRelay sends the message to RabbitMQ afterwards.
+    * OutboxRelay sends the message to SQS afterwards.
     * */
     @Transactional
     fun createReport(request: ReportRequest): Long? {

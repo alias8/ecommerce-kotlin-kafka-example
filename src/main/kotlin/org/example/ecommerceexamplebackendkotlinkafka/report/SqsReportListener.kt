@@ -11,11 +11,10 @@ import org.springframework.messaging.handler.annotation.Header
 import org.springframework.stereotype.Component
 
 /**
- * SQS consumer for report jobs (worker process, app.queue.transport=sqs).
+ * SQS consumer for report jobs (worker process).
  *
- * Differences from RabbitMQ:
- * - SQS never pushes. The container LONG-POLLS: ReceiveMessage waits up to pollTimeoutSeconds
- *   for messages, in a loop, on background threads.
+ * - SQS never pushes (RabbitMQ pushes to an open connection). The container LONG-POLLS:
+ *   ReceiveMessage waits up to pollTimeoutSeconds for messages, in a loop, on background threads.
  * - Receiving HIDES the message for messageVisibilitySeconds; it isn't deleted yet.
  *   Returning normally -> the container DELETES it. Throwing -> nothing happens; when the
  *   visibility timeout runs out, the message reappears and is received again.
@@ -30,7 +29,6 @@ import org.springframework.stereotype.Component
  */
 @Component
 @ConditionalOnProperty("app.worker.enabled", havingValue = "true")
-@ConditionalOnProperty("app.queue.transport", havingValue = "sqs")
 class SqsReportListener(
     private val reportWorker: ReportWorker,
     private val reportJobRepository: ReportJobRepository,
