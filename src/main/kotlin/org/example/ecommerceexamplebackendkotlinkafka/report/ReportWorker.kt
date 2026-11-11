@@ -4,6 +4,7 @@ import org.example.ecommerceexamplebackendkotlinkafka.config.RabbitMQConfig
 import org.slf4j.LoggerFactory
 import org.springframework.amqp.rabbit.annotation.RabbitListener
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import java.time.Duration
 import java.time.Instant
@@ -23,6 +24,7 @@ import java.time.Instant
 @ConditionalOnProperty("app.worker.enabled", havingValue = "true")
 class ReportWorker(
     private val reportJobRepository: ReportJobRepository,
+    private val mediaClient: MediaClient,
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(ReportWorker::class.java)
@@ -49,8 +51,10 @@ class ReportWorker(
         }
         logger.info("Processing {}", message.jobKey)
 
-        try {
-            Thread.sleep(30000) // the slow work
+        val fileId = try {
+            val content = buildReport(reportJobId)
+            // Times out instead of hanging if the media service is stuck (see MediaClient).
+            mediaClient.upload(message.jobKey ?: "report:$reportJobId", content, MediaType.TEXT_PLAIN)
         } catch (e: Exception) {
             // Give the claim back so the retry can take it; otherwise the retry would see
             // PROCESSING, skip, ack the message, and the job would be stuck forever.
@@ -61,6 +65,13 @@ class ReportWorker(
         val reportJob = reportJobRepository.findById(reportJobId).orElseThrow()
         reportJob.status = ReportStatus.COMPLETED
         reportJob.completedAt = Instant.now()
+        reportJob.resultPath = "media:$fileId"
         reportJobRepository.save(reportJob)
+    }
+
+    // The slow part: stands in for querying orders and building a file.
+    private fun buildReport(reportJobId: Long): ByteArray {
+        Thread.sleep(30000)
+        return "report $reportJobId generated at ${Instant.now()}\n".toByteArray()
     }
 }
