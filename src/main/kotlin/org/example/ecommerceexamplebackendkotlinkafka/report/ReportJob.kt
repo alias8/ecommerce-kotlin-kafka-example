@@ -31,6 +31,8 @@ data class ReportRequest(
 )
 
 data class ReportNotificationMessage(
+    // Deterministic key, e.g. "report:42": the same on every redelivery of this job.
+    val jobKey: String?,
     val reportJobId: Long?,
     val customerEmail: String?,
 )
