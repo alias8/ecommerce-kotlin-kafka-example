@@ -6,10 +6,11 @@ import org.example.ecommerceexamplebackendkotlinkafka.config.RabbitMQConfig
 import org.slf4j.LoggerFactory
 import org.springframework.amqp.core.Message
 import org.springframework.amqp.rabbit.retry.RejectAndDontRequeueRecoverer
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
 /**
- * Runs once a listener's retries are used up (application.properties: 5 attempts with backoff).
+ * RabbitMQ only (SQS: see SqsReportListener). Runs once a listener's retries are used up (application.properties: 5 attempts with backoff).
  * Spring Boot plugs any MessageRecoverer bean into the listener retry policy.
  *
  * 1. For report jobs, mark the job FAILED so the user polling GET /report/{id} sees it,
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Component
  *    Alarm on DLQ depth > 0.
  */
 @Component
+@ConditionalOnProperty("app.queue.transport", havingValue = "rabbit", matchIfMissing = true)
 class ReportFailureRecoverer(
     private val reportJobRepository: ReportJobRepository,
 ) : RejectAndDontRequeueRecoverer() {

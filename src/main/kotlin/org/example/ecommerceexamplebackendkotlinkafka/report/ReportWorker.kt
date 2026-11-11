@@ -1,8 +1,6 @@
 package org.example.ecommerceexamplebackendkotlinkafka.report
 
-import org.example.ecommerceexamplebackendkotlinkafka.config.RabbitMQConfig
 import org.slf4j.LoggerFactory
-import org.springframework.amqp.rabbit.annotation.RabbitListener
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
@@ -10,7 +8,8 @@ import java.time.Duration
 import java.time.Instant
 
 /**
- * The slow side of report jobs: consumes the report queue.
+ * The slow side of report jobs. Transport-agnostic: RabbitReportListener or SqsReportListener
+ * receives the message and calls [processReport].
  *
  * Only created when app.worker.enabled=true, so the same JAR can run as:
  *   web:    --app.worker.enabled=false                  (serves HTTP, never consumes)
@@ -31,14 +30,12 @@ class ReportWorker(
 
         // Must be longer than the slowest real job, or a live worker's job gets taken over.
         // (RabbitMQ only redelivers if the consumer's connection drops or it exceeds the
-        // broker's ack timeout, 30 min by default; SQS would redeliver after the visibility timeout.)
+        // broker's ack timeout, 30 min by default; SQS redelivers after the visibility timeout,
+        // see SqsReportListener.)
         private val CLAIM_LEASE: Duration = Duration.ofMinutes(10)
     }
 
-    // Spring starts a listener container: threads holding a connection to RabbitMQ.
-    // RabbitMQ pushes each message here; returning normally acks it (RabbitMQ deletes it),
-    // throwing triggers the retry policy, then the dead-letter queue (see RabbitMQConfig).
-    @RabbitListener(queues = [RabbitMQConfig.REPORT_QUEUE])
+    /** Returning normally = success (message deleted); throwing = failure (retried, then DLQ). */
     fun processReport(message: ReportNotificationMessage) {
         val reportJobId = message.reportJobId ?: throw RuntimeException("reportJobId is null")
         val now = Instant.now()
