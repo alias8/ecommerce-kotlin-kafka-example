@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.amqp.rabbit.annotation.RabbitListener
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
+import java.time.Duration
 import java.time.Instant
 
 /**
@@ -25,6 +26,11 @@ class ReportWorker(
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(ReportWorker::class.java)
+
+        // Must be longer than the slowest real job, or a live worker's job gets taken over.
+        // (RabbitMQ only redelivers if the consumer's connection drops or it exceeds the
+        // broker's ack timeout, 30 min by default; SQS would redeliver after the visibility timeout.)
+        private val CLAIM_LEASE: Duration = Duration.ofMinutes(10)
     }
 
     // Spring starts a listener container: threads holding a connection to RabbitMQ.
@@ -33,13 +39,26 @@ class ReportWorker(
     @RabbitListener(queues = [RabbitMQConfig.REPORT_QUEUE])
     fun processReport(message: ReportNotificationMessage) {
         val reportJobId = message.reportJobId ?: throw RuntimeException("reportJobId is null")
-        val reportJob = reportJobRepository.findById(reportJobId)
-            .orElseThrow { RuntimeException("Unknown reportJob with id: $reportJobId") }
-        logger.info("Processing report job {}", reportJobId)
+        val now = Instant.now()
 
-        reportJob.status = ReportStatus.PROCESSING
-        reportJobRepository.save(reportJob)
-        Thread.sleep(30000) // the slow work
+        // At-least-once delivery (and the outbox relay) can hand us the same job twice.
+        // Only the worker that wins the claim does the work; everyone else acks and moves on.
+        if (reportJobRepository.claim(reportJobId, now, staleBefore = now.minus(CLAIM_LEASE)) == 0) {
+            logger.info("Skipping {}: already completed or being processed", message.jobKey)
+            return
+        }
+        logger.info("Processing {}", message.jobKey)
+
+        try {
+            Thread.sleep(30000) // the slow work
+        } catch (e: Exception) {
+            // Give the claim back so the retry can take it; otherwise the retry would see
+            // PROCESSING, skip, ack the message, and the job would be stuck forever.
+            reportJobRepository.release(reportJobId)
+            throw e
+        }
+
+        val reportJob = reportJobRepository.findById(reportJobId).orElseThrow()
         reportJob.status = ReportStatus.COMPLETED
         reportJob.completedAt = Instant.now()
         reportJobRepository.save(reportJob)

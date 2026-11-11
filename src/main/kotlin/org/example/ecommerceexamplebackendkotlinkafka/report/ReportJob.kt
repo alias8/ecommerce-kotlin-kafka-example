@@ -17,6 +17,7 @@ class ReportJob {
     var status: ReportStatus = ReportStatus.PENDING
     var requestedAt: Instant? = Instant.now()
     var completedAt: Instant? = null
+    var claimedAt: Instant? = null
     var resultPath: String? = null
 }
 
