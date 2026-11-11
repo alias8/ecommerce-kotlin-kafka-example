@@ -78,4 +78,4 @@ aws sqs create-queue --queue-name report-jobs --attributes '{
 - The read timeout covers waiting for the response, not a server trickling bytes; a hard overall deadline needs a wrapper.
 - No heartbeat for SQS jobs longer than the visibility timeout.
 - Redriving a FAILED job needs it reset to `PENDING` first, because `FAILED` isn't claimable.
-- No alarms in code: alarm on oldest-message age and DLQ depth in CloudWatch / RabbitMQ monitoring.
+- No alarms in code: alarm on oldest-message age and DLQ depth in CloudWatch.
